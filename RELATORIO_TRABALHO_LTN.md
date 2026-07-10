@@ -144,7 +144,9 @@ Tambem foi reportado o valor de satisfatibilidade global `satAgg`, que indica o 
 
 ## 7. Resultados
 
-Preencha esta tabela com os valores gerados por:
+O experimento completo foi executado com 5 sementes aleatorias, 25 objetos por cena e 350 epocas por execucao. O arquivo completo gerado esta em `resultados_clevr_ltn.csv`.
+
+Comando usado:
 
 ```bash
 python clevr_ltn_experimentos.py --runs 5 --epochs 350 --out resultados_clevr_ltn.csv --plot-dir figuras
@@ -152,23 +154,33 @@ python clevr_ltn_experimentos.py --runs 5 --epochs 350 --out resultados_clevr_lt
 
 | Execucao | Seed | satAgg | Accuracy | Precision | Recall | F1 |
 |---:|---:|---:|---:|---:|---:|---:|
-| 1 | 42 | preencher | preencher | preencher | preencher | preencher |
-| 2 | 43 | preencher | preencher | preencher | preencher | preencher |
-| 3 | 44 | preencher | preencher | preencher | preencher | preencher |
-| 4 | 45 | preencher | preencher | preencher | preencher | preencher |
-| 5 | 46 | preencher | preencher | preencher | preencher | preencher |
+| 1 | 42 | 0.5914 | 0.9460 | 0.9217 | 0.8913 | 0.9062 |
+| 2 | 43 | 0.5989 | 0.9387 | 0.8869 | 0.8948 | 0.8908 |
+| 3 | 44 | 0.6165 | 0.9393 | 0.8892 | 0.9046 | 0.8968 |
+| 4 | 45 | 0.6097 | 0.9277 | 0.8696 | 0.8744 | 0.8720 |
+| 5 | 46 | 0.6170 | 0.9361 | 0.8516 | 0.9307 | 0.8894 |
 
 Resumo:
 
 | Metrica | Media | Desvio padrao |
 |---|---:|---:|
-| satAgg | preencher | preencher |
-| Accuracy | preencher | preencher |
-| Precision | preencher | preencher |
-| Recall | preencher | preencher |
-| F1 | preencher | preencher |
+| satAgg | 0.6067 | 0.0101 |
+| Accuracy | 0.9376 | 0.0059 |
+| Precision | 0.8838 | 0.0233 |
+| Recall | 0.8991 | 0.0185 |
+| F1 | 0.8910 | 0.0112 |
 
 O CSV tambem traz a satisfatibilidade de cada formula individual, como `shape_unique`, `left_asymmetric`, `left_transitive`, `below_transitive`, `between_rule` e as tres consultas compostas.
+
+Figuras geradas para visualizacao das cenas aleatorias:
+
+| Seed | Figura |
+|---:|---|
+| 42 | [scene_seed_42.png](figuras/scene_seed_42.png) |
+| 43 | [scene_seed_43.png](figuras/scene_seed_43.png) |
+| 44 | [scene_seed_44.png](figuras/scene_seed_44.png) |
+| 45 | [scene_seed_45.png](figuras/scene_seed_45.png) |
+| 46 | [scene_seed_46.png](figuras/scene_seed_46.png) |
 
 ## 8. Discussao
 
@@ -176,7 +188,7 @@ O uso de formulas logicas permite avaliar nao apenas se os predicados acertam ex
 
 As consultas compostas testam a capacidade do modelo de combinar atributos e relacoes. A primeira consulta une tamanho, forma e relacoes verticais/horizontais. A segunda usa forma, cor e a relacao ternaria `InBetween`. A terceira testa uma implicacao condicional envolvendo proximidade e tamanho.
 
-Em geral, espera-se que formulas ligadas diretamente ao vetor de atributos, como forma e tamanho, tenham satisfatibilidade alta. Relacoes espaciais compostas tendem a ser mais dificeis, especialmente `InBetween` e regras com quantificadores existenciais ou universais aninhados, pois pequenos erros em predicados basicos podem se propagar para a formula composta.
+Em geral, formulas ligadas diretamente ao vetor de atributos, como forma e tamanho, tiveram satisfatibilidade alta. Relacoes espaciais compostas tendem a ser mais dificeis, especialmente `InBetween` e regras com quantificadores existenciais ou universais aninhados, pois pequenos erros em predicados basicos podem se propagar para a formula composta.
 
 ## 9. Conclusao
 
