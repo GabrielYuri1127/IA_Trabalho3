@@ -54,3 +54,4 @@ jobs:
           path: |
             resultados_clevr_ltn.csv
             figuras/
+# trigger-full-experiment
