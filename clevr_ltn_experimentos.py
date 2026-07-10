@@ -130,14 +130,17 @@ def gt_can_stack(s: Scene):
 
 
 def gt_between(s: Scene):
-    left, right, n = gt_left(s), gt_right(s), s.n
-    y = torch.zeros(n, n, n)
-    for x in range(n):
-        for a in range(n):
-            for b in range(n):
-                if len({x, a, b}) == 3:
-                    y[x, a, b] = float((left[a, x] and right[b, x]) or (left[b, x] and right[a, x]))
-    return y
+    left = gt_left(s).bool()
+    right = gt_right(s).bool()
+    n = s.n
+    idx = torch.arange(n)
+    x = idx[:, None, None]
+    y = idx[None, :, None]
+    z = idx[None, None, :]
+    distinct = (x != y) & (x != z) & (y != z)
+    cond1 = left.T[:, :, None] & right.T[:, None, :]
+    cond2 = left.T[:, None, :] & right.T[:, :, None]
+    return ((cond1 | cond2) & distinct).float()
 
 
 class Unary(nn.Module):
@@ -235,11 +238,7 @@ def formulas(m: Model, s: Scene):
     close, same_size, can_stack = b["close"], b["same_size"], b["can_stack"]
     shapes = [u[f"is_{f}"] for f in SHAPES]
     unique = [forall(l_not(l_and(shapes[i], shapes[j]))) for i in range(5) for j in range(i + 1, 5)]
-    between_logic = torch.zeros_like(between)
-    for x in range(n):
-        for y in range(n):
-            for z in range(n):
-                between_logic[x, y, z] = l_or(l_and(left[y, x], right[z, x]), l_and(left[z, x], right[y, x]))
+    between_logic = l_or(l_and(left.T[:, :, None], right.T[:, None, :]), l_and(left.T[:, None, :], right.T[:, :, None]))
     eye = torch.eye(n, dtype=torch.bool)
     not_eye = ~eye
     return {
