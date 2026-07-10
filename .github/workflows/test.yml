@@ -1,0 +1,44 @@
+name: Teste do experimento LTN
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy matplotlib torch
+          pip install LTNtorch || true
+
+      - name: Syntax check
+        run: python -m py_compile clevr_ltn_experimentos.py
+
+      - name: Smoke test
+        run: python clevr_ltn_experimentos.py --runs 1 --epochs 2 --n-objects 8 --out smoke_resultados.csv --plot-dir figuras_smoke
+
+      - name: Check generated files
+        run: |
+          test -f smoke_resultados.csv
+          test -d figuras_smoke
+          ls -la
+          ls -la figuras_smoke
+
+      - name: Upload smoke artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-resultados
+          path: |
+            smoke_resultados.csv
+            figuras_smoke/
