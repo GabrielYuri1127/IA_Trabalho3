@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: full-experiment-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   full-experiment:
     runs-on: ubuntu-latest
@@ -54,4 +58,3 @@ jobs:
           path: |
             resultados_clevr_ltn.csv
             figuras/
-# trigger-full-experiment
