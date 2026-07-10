@@ -2,10 +2,11 @@
 
 Rode com:
     pip install torch numpy matplotlib LTNtorch
-    python clevr_ltn_experimentos.py --runs 5 --epochs 350 --out resultados_clevr_ltn.csv
+    python clevr_ltn_experimentos.py --runs 5 --epochs 350 --out resultados_clevr_ltn.csv --plot-dir figuras
 
-O codigo usa PyTorch para treinar predicados fuzzy equivalentes aos usados em
-LTNtorch e calcula satAgg, acuracia, precisao, recall e F1.
+O codigo gera 5 datasets aleatorios com 25 objetos, treina predicados fuzzy
+para atributos e relacoes espaciais, calcula satisfatibilidade das formulas
+pedidas no enunciado e reporta acuracia, precisao, recall e F1.
 """
 
 from __future__ import annotations
@@ -20,6 +21,18 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+try:
+    import matplotlib.pyplot as plt
+except ModuleNotFoundError:
+    plt = None
+
+try:
+    import ltn
+    HAS_LTN = True
+except ModuleNotFoundError:
+    ltn = None
+    HAS_LTN = False
 
 COLORS = ["red", "green", "blue"]
 SHAPES = ["circle", "square", "cylinder", "cone", "triangle"]
@@ -160,7 +173,8 @@ class Model(nn.Module):
         self.color = nn.ModuleDict({c: Unary() for c in COLORS})
         self.shape = nn.ModuleDict({f: Unary() for f in SHAPES})
         self.size = nn.ModuleDict({"small": Unary(), "big": Unary()})
-        self.rel = nn.ModuleDict({r: Binary() for r in ["left", "right", "below", "above", "close", "same_size", "can_stack"]})
+        rels = ["left", "right", "below", "above", "close", "same_size", "can_stack"]
+        self.rel = nn.ModuleDict({r: Binary() for r in rels})
         self.between = Ternary()
 
     def unary(self, x):
@@ -247,8 +261,38 @@ def formulas(m: Model, s: Scene):
     }
 
 
+def ltn_api_sat_check(m: Model, s: Scene):
+    """Auditoria curta usando objetos reais do LTNtorch, quando instalado."""
+    if not HAS_LTN:
+        return {}
+    try:
+        x = ltn.Variable("x", s.x)
+        y = ltn.Variable("y", s.x)
+        is_circle = ltn.Predicate(m.shape["circle"])
+        is_square = ltn.Predicate(m.shape["square"])
+        left = ltn.Predicate(m.rel["left"])
+        right = ltn.Predicate(m.rel["right"])
+        Not = ltn.Connective(ltn.fuzzy_ops.NotStandard())
+        And = ltn.Connective(ltn.fuzzy_ops.AndProd())
+        Or = ltn.Connective(ltn.fuzzy_ops.OrProbSum())
+        Implies = ltn.Connective(ltn.fuzzy_ops.ImpliesReichenbach())
+        Forall = ltn.Quantifier(ltn.fuzzy_ops.AggregPMeanError(p=2), quantifier="f")
+        SatAgg = ltn.fuzzy_ops.SatAgg()
+        axioms = [
+            Forall(x, Not(And(is_circle(x), is_square(x)))),
+            Forall([x, y], Implies(left(x, y), Not(left(y, x)))),
+            Forall([x, y], And(Implies(left(x, y), right(y, x)), Implies(right(y, x), left(x, y)))),
+            Forall(x, Or(is_circle(x), is_square(x))),
+        ]
+        sat = SatAgg(*axioms)
+        return {"ltn_api_sat_check": float(sat.item() if hasattr(sat, "item") else sat.value.item())}
+    except Exception as exc:
+        print(f"Aviso: auditoria LTNtorch ignorada: {exc}")
+        return {}
+
+
 def train(s: Scene, epochs: int, lr: float, axiom_weight: float):
-    m, opt = Model(), None
+    m = Model()
     opt = torch.optim.Adam(m.parameters(), lr=lr)
     for e in range(epochs):
         opt.zero_grad()
@@ -277,7 +321,24 @@ def evaluate(m: Model, s: Scene):
         targets = {"left": gt_left(s), "right": gt_right(s), "below": gt_below(s), "above": gt_above(s), "close": gt_close(s), "same_size": gt_same_size(s), "can_stack": gt_can_stack(s), "between": gt_between(s)}
         scores = {**b, "between": bt}
         mt = metrics(torch.cat([targets[k].reshape(-1) for k in targets]), torch.cat([scores[k].reshape(-1) for k in targets]))
-        return {"satAgg": float(satagg(f.values()).item()), **{k: float(v.item()) for k, v in f.items()}, **mt}
+        return {"satAgg": float(satagg(f.values()).item()), **{k: float(v.item()) for k, v in f.items()}, **mt, **ltn_api_sat_check(m, s)}
+
+
+def plot_scene(s: Scene, out_dir: Path):
+    if plt is None:
+        return
+    out_dir.mkdir(parents=True, exist_ok=True)
+    markers = {"circle": "o", "square": "s", "cylinder": "D", "cone": "^", "triangle": "v"}
+    cmap = {"red": "tab:red", "green": "tab:green", "blue": "tab:blue"}
+    fig, ax = plt.subplots(figsize=(6, 5))
+    for i in range(s.n):
+        ax.scatter(float(s.x[i, 0]), float(s.x[i, 1]), s=80 + 70 * int(s.size[i]), c=cmap[COLORS[int(s.color[i])]], marker=markers[SHAPES[int(s.shape[i])]], edgecolor="black")
+        ax.text(float(s.x[i, 0]) + 0.01, float(s.x[i, 1]) + 0.01, str(i), fontsize=8)
+    ax.set(xlim=(0, 1), ylim=(0, 1), xlabel="x", ylabel="y", title=f"CLEVR simplificado - seed {s.seed}")
+    ax.grid(alpha=0.25)
+    fig.tight_layout()
+    fig.savefig(out_dir / f"scene_seed_{s.seed}.png", dpi=160)
+    plt.close(fig)
 
 
 def run(args):
@@ -287,6 +348,8 @@ def run(args):
         print(f"\n=== Execucao {i+1}/{args.runs} | seed={seed} ===")
         seed_all(seed)
         s = generate_scene(seed, args.n_objects)
+        if args.plot_dir:
+            plot_scene(s, Path(args.plot_dir))
         m = train(s, args.epochs, args.lr, args.axiom_weight)
         row = {"run": i + 1, "seed": seed, **evaluate(m, s)}
         rows.append(row)
@@ -303,6 +366,7 @@ def main():
     p.add_argument("--lr", type=float, default=0.01)
     p.add_argument("--axiom-weight", type=float, default=0.35)
     p.add_argument("--out", default="resultados_clevr_ltn.csv")
+    p.add_argument("--plot-dir", default="")
     args = p.parse_args()
     rows = run(args)
     with Path(args.out).open("w", newline="", encoding="utf-8") as f:
