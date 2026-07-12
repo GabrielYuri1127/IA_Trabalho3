@@ -2,6 +2,15 @@
 
 Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no repositorio.
 
+## Interpretacao confirmada pelo professor
+
+- Nao sao 5 objetos no total.
+- Sao 5 classes de objetos.
+- Cada classe aparece 5 vezes.
+- Portanto, cada cena possui 25 objetos: 5 circulos, 5 quadrados, 5 cilindros, 5 cones e 5 triangulos.
+- O objetivo principal nao e apenas classificar, mas testar reasoning.
+- O experimento treina em uma cena balanceada e testa em datasets/cenas aleatorios distintos.
+
 ## Estrutura de dados
 
 | Item do enunciado | Status | Onde esta |
@@ -10,9 +19,18 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 | Coordenadas normalizadas `(x,y)` | Atendido | `generate_scene` em `clevr_ltn_experimentos.py` |
 | Cores one-hot: vermelho, verde, azul | Atendido | `COLORS`, `generate_scene` |
 | Formas one-hot: circulo, quadrado, cilindro, cone, triangulo | Atendido | `SHAPES`, `generate_scene` |
-| Tamanho pequeno/grande | Atendido | atributo `[10]`, predicados `is_small` e `is_big` |
-| 25 objetos aleatorios por cena | Atendido | parametro padrao `--n-objects 25` |
+| 5 objetos de cada classe de forma | Atendido | `balanced_shape_indices`, colunas `n_circle` a `n_triangle` no CSV |
+| 25 objetos por cena | Atendido | parametro padrao `--n-objects 25` |
 | Plotar cenario aleatorio | Atendido | pasta `figuras/` |
+
+## Protocolo experimental
+
+| Item | Status | Onde esta |
+|---|---|---|
+| Treinar reasoning com uma unica cena/caso | Atendido | `train_seed=2025` em `run(args)` |
+| Testar em datasets aleatorios distintos | Atendido | seeds de teste 42, 43, 44, 45 e 46 |
+| Manter 25 objetos em cada dataset de teste | Atendido | `generate_scene(seed, 25)` |
+| Manter 5 objetos de cada classe em cada dataset de teste | Atendido | `balanced_shape_indices` e contagens no CSV |
 
 ## Tarefa 1 - Taxonomia e formas
 
@@ -71,7 +89,7 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 | Breve descricao de NeSy e LTN | Atendido | secao 1 do relatorio |
 | Descricao do dataset CLEVR simplificado | Atendido | secao 2 do relatorio |
 | Valor de satisfacao das formulas | Atendido | `resultados_clevr_ltn.csv` e secao 7 do relatorio |
-| 5 execucoes com datasets aleatorios distintos | Atendido | seeds 42, 43, 44, 45, 46 |
+| 5 execucoes em datasets aleatorios distintos | Atendido | seeds de teste 42, 43, 44, 45, 46 |
 | `satAgg` de cada pergunta/formula | Atendido | CSV e tabela de satisfatibilidade no relatorio |
 | Acuracia | Atendido | CSV e relatorio |
 | Precisao | Atendido | CSV e relatorio |
