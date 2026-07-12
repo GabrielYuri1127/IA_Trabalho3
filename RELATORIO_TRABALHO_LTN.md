@@ -11,6 +11,20 @@ Logic Tensor Networks (LTN) sao uma familia de modelos neuro-simbolicos que mape
 
 No LTNtorch, esse processo segue cinco etapas principais: aterramento dos dados nas formulas, avaliacao dos valores de verdade, agregacao da satisfatibilidade, calculo da perda `1 - satAgg` e retropropagacao para ajustar os parametros dos predicados.
 
+Essa etapa de aprendizado segue a mesma ideia do material complementar enviado pelo professor sobre calculo em redes neurais. Em uma rede comum, o neuronio calcula uma combinacao linear `z = W x + b`, aplica uma ativacao diferenciavel, por exemplo `sigma(z)`, mede uma perda e atualiza os pesos com descida de gradiente:
+
+```text
+W <- W - alpha * dLoss/dW
+```
+
+Na LTN, a diferenca e que a saida usada na perda nao e apenas uma classe prevista, mas a satisfatibilidade fuzzy das formulas logicas. Assim, a parte simbolica tambem participa do gradiente:
+
+```text
+Loss_total = Loss_fatos + lambda * (1 - satAgg)
+```
+
+No codigo, isso aparece no treinamento como `loss = facts + axiom_weight * (1 - sat)`, seguido de `loss.backward()` e `opt.step()`. Como os predicados neurais, os conectivos fuzzy e o agregador `satAgg` sao diferenciaveis, o PyTorch consegue propagar o erro das formulas ate os pesos das redes dos predicados.
+
 Neste trabalho, o grounding usado foi:
 
 | Elemento logico | Implementacao no experimento |

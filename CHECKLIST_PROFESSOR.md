@@ -92,6 +92,7 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 | Codigo no GitHub | Atendido | `clevr_ltn_experimentos.py` |
 | Texto em Markdown/PDF | Atendido | `RELATORIO_TRABALHO_LTN.md` e PDF local gerado |
 | Breve descricao de NeSy e LTN | Atendido | secao 1 do relatorio |
+| Relacao entre rede neural, perda e gradiente | Atendido | secao 1 do relatorio e `train()` no codigo |
 | Descricao do dataset CLEVR simplificado | Atendido | secao 2 do relatorio |
 | Valor de satisfacao das formulas | Atendido | `resultados_clevr_ltn.csv` e secao 7 do relatorio |
 | 5 execucoes em datasets aleatorios distintos | Atendido | seeds de teste 42, 43, 44, 45, 46 |

@@ -14,6 +14,8 @@ O dataset nao usa 5 objetos no total. Ele usa 5 classes de objetos, com 5 objeto
 
 O experimento treina os predicados e regras de reasoning em uma cena balanceada e depois testa a generalizacao em 5 cenas/datasets aleatorios distintos, tambem balanceados.
 
+O treinamento usa redes neurais com retropropagacao: a parte logica entra na funcao de perda como `1 - satAgg`, seguindo a ideia de descida de gradiente vista no material complementar do professor.
+
 As consultas compostas cobrem os niveis de raciocinio pedidos no material da atividade: q1 e q2 sao de raciocinio espacial/relacional multi-hop, e q3 e uma implicacao material do nivel condicional.
 
 As cenas sao geradas com distancia minima entre centroides (`--min-distance 0.08`) para reduzir sobreposicao visual entre objetos.
