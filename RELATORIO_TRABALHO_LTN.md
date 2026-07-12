@@ -205,25 +205,25 @@ python clevr_ltn_experimentos.py --runs 5 --epochs 350 \
 
 | Execucao | Train seed | Test seed | satAgg | Accuracy | Precision | Recall | F1 |
 |---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 2025 | 42 | 0.6007 | 0.8588 | 0.7437 | 0.7606 | 0.7521 |
-| 2 | 2025 | 43 | 0.5986 | 0.7963 | 0.6288 | 0.7396 | 0.6797 |
-| 3 | 2025 | 44 | 0.5941 | 0.8023 | 0.6454 | 0.7413 | 0.6900 |
-| 4 | 2025 | 45 | 0.5905 | 0.8053 | 0.6589 | 0.6992 | 0.6785 |
-| 5 | 2025 | 46 | 0.6051 | 0.8183 | 0.6802 | 0.7528 | 0.7147 |
+| 1 | 2025 | 42 | 0.6007 | 0.8590 | 0.7440 | 0.7613 | 0.7526 |
+| 2 | 2025 | 43 | 0.5987 | 0.7964 | 0.6287 | 0.7411 | 0.6803 |
+| 3 | 2025 | 44 | 0.5941 | 0.8020 | 0.6448 | 0.7411 | 0.6896 |
+| 4 | 2025 | 45 | 0.5905 | 0.8060 | 0.6602 | 0.6994 | 0.6792 |
+| 5 | 2025 | 46 | 0.6050 | 0.8178 | 0.6796 | 0.7521 | 0.7140 |
 
 Resumo:
 
 | Metrica | Media | Desvio padrao |
 |---|---:|---:|
 | satAgg | 0.5978 | 0.0051 |
-| Accuracy relacional | 0.8162 | 0.0225 |
-| Precision relacional | 0.6714 | 0.0399 |
-| Recall relacional | 0.7387 | 0.0212 |
-| F1 relacional | 0.7030 | 0.0278 |
+| Accuracy relacional | 0.8163 | 0.0225 |
+| Precision relacional | 0.6715 | 0.0400 |
+| Recall relacional | 0.7390 | 0.0212 |
+| F1 relacional | 0.7031 | 0.0277 |
 | Accuracy unaria | 0.9808 | 0.0148 |
 | F1 unario | 0.9667 | 0.0261 |
-| Accuracy geral | 0.8182 | 0.0223 |
-| F1 geral | 0.7061 | 0.0277 |
+| Accuracy geral | 0.8183 | 0.0223 |
+| F1 geral | 0.7062 | 0.0277 |
 
 Contagem de classes nas cenas de teste:
 
@@ -257,25 +257,35 @@ Satisfatibilidade media das formulas e perguntas:
 | `left_transitive` | LeftOf transitivo | 0.9786 | 0.0046 |
 | `below_above_inverse` | Below/Above inversos | 0.8802 | 0.0075 |
 | `below_transitive` | Below transitivo | 0.9729 | 0.0080 |
-| `between_rule` | Regra InBetween | 0.6555 | 0.0273 |
+| `between_rule` | Regra InBetween | 0.6558 | 0.0275 |
 | `last_left` | Objeto mais a esquerda | 0.4182 | 0.0052 |
 | `last_right` | Objeto mais a direita | 0.4409 | 0.0121 |
 | `can_stack_rule` | Regra CanStack - suporte valido | 0.9792 | 0.0167 |
 | `can_stack_stability_rule` | Regra CanStack - estabilidade | 0.7802 | 0.0374 |
 | `query_small_below_ellipse_left_square` | Pergunta composta 1 | 0.0506 | 0.0119 |
-| `query_green_rectangle_between` | Pergunta composta 2 | 0.1418 | 0.0426 |
-| `query_triangles_close_same_size` | Pergunta composta 3 | 0.9791 | 0.0130 |
+| `query_green_rectangle_between` | Pergunta composta 2 | 0.1416 | 0.0429 |
+| `query_triangles_close_same_size` | Pergunta composta 3 | 0.9785 | 0.0134 |
 | `ltn_api_sat_check` | Auditoria complementar via LTNtorch | 0.9110 | 0.0169 |
 
 Evidencia interpretavel das consultas compostas:
 
 | Execucao | Test seed | q1 GT | q1 melhor testemunha | q1 objeto | q2 GT | q2 melhor testemunha | q2 objeto | q3 pares proximos | q3 violacoes |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 42 | 1 | 0.9989 | 20 | 1 | 0.9880 | 0 | 2 | 2 |
+| 1 | 42 | 1 | 0.9989 | 20 | 1 | 0.9885 | 0 | 2 | 2 |
 | 2 | 43 | 1 | 0.9950 | 6 | 1 | 0.9983 | 19 | 2 | 2 |
-| 3 | 44 | 1 | 0.9985 | 7 | 1 | 0.9923 | 18 | 2 | 0 |
+| 3 | 44 | 1 | 0.9985 | 7 | 1 | 0.9925 | 18 | 2 | 0 |
 | 4 | 45 | 1 | 0.9983 | 11 | 1 | 0.9994 | 2 | 4 | 0 |
 | 5 | 46 | 1 | 0.9949 | 8 | 1 | 0.9994 | 9 | 6 | 4 |
+
+Auditoria XAI do par horizontal extremo:
+
+| Execucao | Test seed | Objeto mais a esquerda | Objeto mais a direita | `LeftOf(esq,dir)` | `LeftOf(dir,esq)` | Assimetria |
+|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 42 | 2 | 10 | 1.0000 | 0.0000 | 1.0000 |
+| 2 | 43 | 1 | 12 | 1.0000 | 0.0000 | 1.0000 |
+| 3 | 44 | 10 | 15 | 1.0000 | 0.0000 | 1.0000 |
+| 4 | 45 | 9 | 19 | 1.0000 | 0.0000 | 1.0000 |
+| 5 | 46 | 10 | 24 | 1.0000 | 0.0000 | 1.0000 |
 
 `q1 GT` e `q2 GT` indicam a resposta booleana calculada diretamente dos atributos e relacoes geometricas da cena. A coluna de melhor testemunha mostra a maior confianca fuzzy encontrada pelo modelo para algum objeto que satisfaz a consulta. Isso ajuda a interpretar casos em que o `satAgg` existencial e baixo: a agregacao fuzzy considera muitos objetos que nao satisfazem a pergunta, mas a melhor testemunha pode confirmar que a consulta foi encontrada.
 
