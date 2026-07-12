@@ -1,14 +1,15 @@
-# Raciocinio Espacial Neuro-Simbolico com LTNtorch
+# Trabalho Final de IA: Raciocínio Espacial Neuro-Simbólico com LTNtorch
 
-Disciplina: Fundamentos de Inteligencia Artificial  
-Tema: Logic Tensor Networks (LTN), CLEVR simplificado e raciocinio espacial  
-Integrantes: Gabriel Yuri, Guilherme Gurgel e Jenifer  
+Equipe: Gabriel Yuri, Guilherme Gurgel, Isabela Monteiro e Marcele Azevedo  
+Disciplina: Inteligência Artificial  
+Professor: Edjard Mota  
+Tema: Logic Tensor Networks (LTN), CLEVR simplificado e raciocínio espacial  
 
-## 1. Introducao: IA Neuro-Simbolica e LTN
+## 1. Introdução: O que é NeSy e LTN?
 
-A Inteligencia Artificial neuro-simbolica (NeSy) combina redes neurais, que aprendem padroes a partir de dados, com representacoes simbolicas, que permitem expressar conhecimento por regras logicas. Em vez de treinar apenas um modelo do tipo entrada -> saida, uma abordagem NeSy permite que o treinamento seja guiado por conhecimento declarativo, como "se um objeto esta a esquerda de outro, entao o segundo nao esta a esquerda do primeiro".
+A ideia da Inteligência Artificial Neuro-Simbólica (NeSy) é unir o melhor de dois mundos: o aprendizado das redes neurais com as regras claras da lógica simbólica. Em vez de treinar apenas um modelo do tipo entrada -> saída, uma abordagem NeSy permite que o treinamento seja guiado por conhecimento declarativo, como "se um objeto está à esquerda de outro, então o segundo não está à esquerda do primeiro".
 
-Logic Tensor Networks (LTN) sao uma familia de modelos neuro-simbolicos que mapeiam elementos da logica de primeira ordem para tensores diferenciaveis. Predicados como `LeftOf(x,y)` ou `IsSquare(x)` sao implementados por redes neurais ou funcoes diferenciaveis que retornam valores de verdade fuzzy no intervalo `[0,1]`. As formulas logicas sao avaliadas com operadores fuzzy, e a satisfatibilidade da base de conhecimento e usada como funcao objetivo durante o treinamento.
+No projeto, usamos Logic Tensor Networks (LTN) como uma ponte entre regras lógicas de domínio e Deep Learning. Em vez de deixar a rede neural aprender tudo do zero como uma caixa-preta, o treinamento é guiado por axiomas lógicos. Predicados como `LeftOf(x,y)` ou `IsSquare(x)` são implementados por redes neurais ou funções diferenciáveis que retornam valores de verdade fuzzy no intervalo `[0,1]`. Como essa lógica fuzzy é diferenciável, conseguimos treinar o modelo por retropropagação usando PyTorch.
 
 No LTNtorch, esse processo segue cinco etapas principais: aterramento dos dados nas formulas, avaliacao dos valores de verdade, agregacao da satisfatibilidade, calculo da perda `1 - satAgg` e retropropagacao para ajustar os parametros dos predicados.
 
@@ -39,9 +40,9 @@ Neste trabalho, o grounding usado foi:
 
 Os conectivos fuzzy foram implementados com negacao padrao `1 - p`, conjuncao por produto, disjuncao probabilistica, implicacao de Reichenbach e agregadores de media-p para `forall` e `exists`. Alem disso, foram usados fatos supervisionados gerados a partir da geometria da cena. Isso evita uma solucao degenerada em que o modelo satisfaz axiomas estruturais de forma trivial, por exemplo aprendendo `LeftOf(x,y)=0` para todos os pares apenas para satisfazer assimetria.
 
-## 2. Dataset CLEVR Simplificado
+## 2. Dataset CLEVR Simplificado e Personalização
 
-O trabalho usa uma versao simplificada do CLEVR. Em vez de processar imagens reais, cada objeto e representado por um vetor de 11 atributos:
+Trabalhar com imagens reais seria mais pesado para o processamento, então usamos uma versão simplificada inspirada no CLEVR. Em vez de processar imagens, cada objeto é representado por um vetor de 11 atributos. A personalização do trabalho foi trocar as formas originais de cilindro e cone por elipse e retângulo:
 
 | Posicoes | Significado |
 |---|---|
