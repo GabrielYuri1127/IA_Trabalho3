@@ -173,7 +173,9 @@ O experimento completo foi executado com uma cena de treino balanceada (`train_s
 Comando usado:
 
 ```bash
-python clevr_ltn_experimentos.py --runs 5 --epochs 350 --train-seed 2025 --seed 42 --out resultados_clevr_ltn.csv --plot-dir figuras
+python clevr_ltn_experimentos.py --runs 5 --epochs 350 \
+  --train-seed 2025 --seed 42 \
+  --out resultados_clevr_ltn.csv --plot-dir figuras
 ```
 
 | Execucao | Train seed | Test seed | satAgg | Accuracy | Precision | Recall | F1 |
