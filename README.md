@@ -7,6 +7,7 @@ Este repositorio contem a implementacao e o relatorio do trabalho final de Funda
 - `clevr_ltn_experimentos.py`: script dos 5 experimentos com CLEVR simplificado.
 - `trabalho_ltn_clevr.ipynb`: notebook executavel para rodar o teste, o experimento completo, abrir metricas e visualizar figuras.
 - `RELATORIO_TRABALHO_LTN.md`: relatorio com explicacao teorica, formulas e resultados finais.
+- `CHECKLIST_PROFESSOR.md`: checklist item a item comparando a entrega com o enunciado.
 - `resultados_clevr_ltn.csv`: metricas geradas pelo experimento completo.
 - `figuras/`: imagens dos 5 cenarios aleatorios gerados.
 - `.github/workflows/test.yml`: teste automatico rapido.
@@ -50,6 +51,7 @@ Isso gera:
 Resultados finais:
 
 - [Relatorio preenchido](RELATORIO_TRABALHO_LTN.md)
+- [Checklist do enunciado](CHECKLIST_PROFESSOR.md)
 - [CSV de resultados](resultados_clevr_ltn.csv)
 - [Notebook executavel](trabalho_ltn_clevr.ipynb)
 
@@ -70,9 +72,10 @@ Para documentar a execucao, recomenda-se tirar prints de:
 
 1. Pagina principal do repositorio mostrando os arquivos.
 2. `RELATORIO_TRABALHO_LTN.md`, principalmente a secao de resultados.
-3. `resultados_clevr_ltn.csv` aberto no GitHub.
-4. Uma ou mais imagens da pasta `figuras/`.
-5. GitHub Actions com o teste rapido e o experimento completo marcados como sucesso.
+3. `CHECKLIST_PROFESSOR.md`, mostrando que os itens do enunciado foram atendidos.
+4. `resultados_clevr_ltn.csv` aberto no GitHub.
+5. Uma ou mais imagens da pasta `figuras/`.
+6. GitHub Actions com o teste rapido e o experimento completo marcados como sucesso.
 
 ## Referencias
 
