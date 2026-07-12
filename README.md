@@ -2,14 +2,26 @@
 
 Este repositorio contem a implementacao e o relatorio do trabalho final de Fundamentos de Inteligencia Artificial sobre Logic Tensor Networks (LTN), raciocinio espacial e um dataset CLEVR simplificado.
 
+## Ajuste conforme orientacao do professor
+
+O dataset nao usa 5 objetos no total. Ele usa 5 classes de objetos, com 5 objetos de cada classe, totalizando 25 objetos por cena:
+
+- 5 circulos
+- 5 quadrados
+- 5 cilindros
+- 5 cones
+- 5 triangulos
+
+O experimento treina os predicados e regras de reasoning em uma cena balanceada e depois testa a generalizacao em 5 cenas/datasets aleatorios distintos, tambem balanceados.
+
 ## Arquivos principais
 
-- `clevr_ltn_experimentos.py`: script dos 5 experimentos com CLEVR simplificado.
+- `clevr_ltn_experimentos.py`: script do experimento CLEVR simplificado com treino unico e 5 testes aleatorios.
 - `trabalho_ltn_clevr.ipynb`: notebook executavel para rodar o teste, o experimento completo, abrir metricas e visualizar figuras.
 - `RELATORIO_TRABALHO_LTN.md`: relatorio com explicacao teorica, formulas e resultados finais.
 - `CHECKLIST_PROFESSOR.md`: checklist item a item comparando a entrega com o enunciado.
 - `resultados_clevr_ltn.csv`: metricas geradas pelo experimento completo.
-- `figuras/`: imagens dos 5 cenarios aleatorios gerados.
+- `figuras/`: imagens dos cenarios gerados.
 - `.github/workflows/test.yml`: teste automatico rapido.
 - `.github/workflows/full-experiment.yml`: experimento completo automatico.
 
@@ -38,13 +50,13 @@ O notebook contem uma execucao curta de teste, a execucao completa, a leitura do
 ## Como rodar o experimento completo pelo terminal
 
 ```bash
-python clevr_ltn_experimentos.py --runs 5 --epochs 350 --out resultados_clevr_ltn.csv --plot-dir figuras
+python clevr_ltn_experimentos.py --runs 5 --epochs 350 --train-seed 2025 --seed 42 --out resultados_clevr_ltn.csv --plot-dir figuras
 ```
 
 Isso gera:
 
-- `resultados_clevr_ltn.csv`: metricas por execucao.
-- `figuras/`: imagens dos 5 cenarios aleatorios.
+- `resultados_clevr_ltn.csv`: metricas por cena de teste.
+- `figuras/`: imagem da cena de treino e imagens das 5 cenas de teste.
 
 ## Resultados e prints
 
@@ -57,11 +69,12 @@ Resultados finais:
 
 Figuras das cenas:
 
-- [Cena seed 42](figuras/scene_seed_42.png)
-- [Cena seed 43](figuras/scene_seed_43.png)
-- [Cena seed 44](figuras/scene_seed_44.png)
-- [Cena seed 45](figuras/scene_seed_45.png)
-- [Cena seed 46](figuras/scene_seed_46.png)
+- [Cena de treino seed 2025](figuras/scene_seed_2025.png)
+- [Cena teste seed 42](figuras/scene_seed_42.png)
+- [Cena teste seed 43](figuras/scene_seed_43.png)
+- [Cena teste seed 44](figuras/scene_seed_44.png)
+- [Cena teste seed 45](figuras/scene_seed_45.png)
+- [Cena teste seed 46](figuras/scene_seed_46.png)
 
 Testes no GitHub Actions:
 
