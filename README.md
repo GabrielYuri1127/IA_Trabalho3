@@ -2,15 +2,25 @@
 
 Este repositorio contem a implementacao e o relatorio do trabalho final de Fundamentos de Inteligencia Artificial sobre Logic Tensor Networks (LTN), raciocinio espacial e um dataset CLEVR simplificado.
 
+## Integrantes
+
+- Gabriel Yuri
+- Guilherme Gurgel
+- Jenifer
+
 ## Ajuste conforme orientacao do professor
 
 O dataset nao usa 5 objetos no total. Ele usa 5 classes de objetos, com 5 objetos de cada classe, totalizando 25 objetos por cena:
 
-- 5 circulos
-- 5 quadrados
-- 5 elipses
-- 5 retangulos
-- 5 triangulos
+| Classe de forma | Quantidade por cena |
+|---|---:|
+| Circulo | 5 |
+| Quadrado | 5 |
+| Elipse | 5 |
+| Retangulo | 5 |
+| Triangulo | 5 |
+
+Total por cena: 25 objetos.
 
 O experimento treina os predicados e regras de reasoning em uma cena balanceada e depois testa a generalizacao em 5 cenas/datasets aleatorios distintos, tambem balanceados.
 

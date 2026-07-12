@@ -2,6 +2,7 @@
 
 Disciplina: Fundamentos de Inteligencia Artificial  
 Tema: Logic Tensor Networks (LTN), CLEVR simplificado e raciocinio espacial  
+Integrantes: Gabriel Yuri, Guilherme Gurgel e Jenifer  
 
 ## 1. Introducao: IA Neuro-Simbolica e LTN
 
