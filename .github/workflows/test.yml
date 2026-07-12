@@ -26,12 +26,18 @@ jobs:
         run: python -m py_compile clevr_ltn_experimentos.py
 
       - name: Smoke test
-        run: python clevr_ltn_experimentos.py --runs 1 --epochs 2 --n-objects 8 --out smoke_resultados.csv --plot-dir figuras_smoke
+        run: python clevr_ltn_experimentos.py --runs 1 --epochs 2 --n-objects 25 --train-seed 2025 --seed 42 --out smoke_resultados.csv --plot-dir figuras_smoke
 
       - name: Check generated files
         run: |
           test -f smoke_resultados.csv
           test -d figuras_smoke
+          python - <<'PY'
+          import csv
+          row = next(csv.DictReader(open('smoke_resultados.csv', newline='', encoding='utf-8')))
+          for key in ['n_circle', 'n_square', 'n_cylinder', 'n_cone', 'n_triangle']:
+              assert int(row[key]) == 5, (key, row[key])
+          PY
           ls -la
           ls -la figuras_smoke
 
