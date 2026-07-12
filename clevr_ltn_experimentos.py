@@ -475,76 +475,54 @@ def ltn_value(obj):
 def ltn_training_sat(m: Model, s: Scene):
     """Termo diferenciavel de satisfatibilidade usando objetos do LTNtorch."""
     if not HAS_LTN:
-        return None
-    try:
-        x = ltn.Variable("x_train", s.x)
-        y = ltn.Variable("y_train", s.x)
-        shape_preds = [ltn.Predicate(m.shape[name]) for name in SHAPES]
-        left = ltn.Predicate(m.rel["left"])
-        right = ltn.Predicate(m.rel["right"])
-        below = ltn.Predicate(m.rel["below"])
-        above = ltn.Predicate(m.rel["above"])
-        close = ltn.Predicate(m.rel["close"])
-        same_size = ltn.Predicate(m.rel["same_size"])
-        can_stack = ltn.Predicate(m.rel["can_stack"])
-        is_rectangle = ltn.Predicate(m.shape["rectangle"])
-        is_triangle = ltn.Predicate(m.shape["triangle"])
+        raise RuntimeError("LTNtorch e obrigatorio para o termo SatAgg usado no treinamento.")
 
-        Not = ltn.Connective(ltn.fuzzy_ops.NotStandard())
-        And = ltn.Connective(ltn.fuzzy_ops.AndProd())
-        Or = ltn.Connective(ltn.fuzzy_ops.OrProbSum())
-        Implies = ltn.Connective(ltn.fuzzy_ops.ImpliesReichenbach())
-        Forall = ltn.Quantifier(ltn.fuzzy_ops.AggregPMeanError(p=2), quantifier="f")
-        SatAgg = ltn.fuzzy_ops.SatAgg()
+    x = ltn.Variable("x_train", s.x)
+    y = ltn.Variable("y_train", s.x)
+    shape_preds = [ltn.Predicate(m.shape[name]) for name in SHAPES]
+    left = ltn.Predicate(m.rel["left"])
+    right = ltn.Predicate(m.rel["right"])
 
-        def or_many(values):
-            out = values[0]
-            for value in values[1:]:
-                out = Or(out, value)
-            return out
+    Not = ltn.Connective(ltn.fuzzy_ops.NotStandard())
+    And = ltn.Connective(ltn.fuzzy_ops.AndProd())
+    Or = ltn.Connective(ltn.fuzzy_ops.OrProbSum())
+    Implies = ltn.Connective(ltn.fuzzy_ops.ImpliesReichenbach())
+    Forall = ltn.Quantifier(ltn.fuzzy_ops.AggregPMeanError(p=2), quantifier="f")
+    SatAgg = ltn.fuzzy_ops.SatAgg()
 
-        def equiv(a, b):
-            return And(Implies(a, b), Implies(b, a))
+    def or_many(values):
+        out = values[0]
+        for value in values[1:]:
+            out = Or(out, value)
+        return out
 
-        shape_axioms = [
-            Forall(x, Not(And(shape_preds[i](x), shape_preds[j](x))))
-            for i in range(len(shape_preds))
-            for j in range(i + 1, len(shape_preds))
-        ]
-        axioms = [
-            *shape_axioms,
-            Forall(x, or_many([pred(x) for pred in shape_preds])),
-            Forall([x, y], Implies(left(x, y), Not(left(y, x)))),
-            Forall([x, y], equiv(left(x, y), right(y, x))),
-            Forall([x, y], equiv(below(x, y), above(y, x))),
-            Forall([x, y], equiv(close(x, y), close(y, x))),
-            Forall([x, y], Implies(And(And(is_triangle(x), is_triangle(y)), close(x, y)), same_size(x, y))),
-            Forall([x, y], Implies(can_stack(x, y), above(x, y))),
-            Forall([x, y], Implies(can_stack(x, y), Not(Or(is_rectangle(y), is_triangle(y))))),
-        ]
-        return ltn_value(SatAgg(*axioms)).clamp(EPS, 1)
-    except Exception:
-        return None
+    shape_axioms = [
+        Forall(x, Not(And(shape_preds[i](x), shape_preds[j](x))))
+        for i in range(len(shape_preds))
+        for j in range(i + 1, len(shape_preds))
+    ]
+    axioms = [
+        *shape_axioms,
+        Forall(x, or_many([pred(x) for pred in shape_preds])),
+        Forall([x, y], Implies(left(x, y), Not(left(y, x)))),
+        Forall([x, y], And(Implies(left(x, y), right(y, x)), Implies(right(y, x), left(x, y)))),
+    ]
+    return ltn_value(SatAgg(*axioms)).clamp(EPS, 1)
 
 
 def train(s: Scene, epochs: int, lr: float, axiom_weight: float):
     m = Model()
     opt = torch.optim.Adam(m.parameters(), lr=lr)
-    use_ltn_training = HAS_LTN
     ltn_training_active = False
     last_ltn_sat = None
     for e in range(epochs):
         opt.zero_grad()
         facts = supervised_loss(m, s)
         custom_sat = satagg(formulas(m, s).values())
-        ltn_sat = ltn_training_sat(m, s) if use_ltn_training else None
-        if ltn_sat is None and use_ltn_training:
-            print("Aviso: termo LTNtorch de treino indisponivel; usando formulas fuzzy locais.")
-            use_ltn_training = False
-        if ltn_sat is not None:
-            ltn_training_active = True
-            last_ltn_sat = float(ltn_sat.detach().item())
-        sat = satagg([custom_sat, ltn_sat]) if ltn_sat is not None else custom_sat
+        ltn_sat = ltn_training_sat(m, s)
+        ltn_training_active = True
+        last_ltn_sat = float(ltn_sat.detach().item())
+        sat = satagg([custom_sat, ltn_sat])
         loss = facts + axiom_weight * (1 - sat)
         loss.backward(); opt.step()
         if (e + 1) % 100 == 0: print(f"epoch={e+1:04d} loss={loss.item():.4f} satAgg={sat.item():.4f}")

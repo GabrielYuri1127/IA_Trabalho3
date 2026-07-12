@@ -25,7 +25,7 @@ Na LTN, a diferenca e que a saida usada na perda nao e apenas uma classe previst
 Loss_total = Loss_fatos + lambda * (1 - satAgg)
 ```
 
-No codigo, isso aparece no treinamento como `loss = facts + axiom_weight * (1 - sat)`, seguido de `loss.backward()` e `opt.step()`. Quando `LTNtorch` esta instalado, a funcao `ltn_training_sat` constroi um termo de `SatAgg` com `ltn.Variable`, `ltn.Predicate`, `ltn.Connective` e `ltn.Quantifier`, e esse termo tambem entra na perda de treinamento. O CSV registra `ltn_training_active=1` quando esse termo real do LTNtorch participou do treino. As formulas fuzzy locais permanecem como complemento e fallback. Como os predicados neurais, os conectivos fuzzy e o agregador `satAgg` sao diferenciaveis, o PyTorch consegue propagar o erro das formulas ate os pesos das redes dos predicados.
+No codigo, isso aparece no treinamento como `loss = facts + axiom_weight * (1 - sat)`, seguido de `loss.backward()` e `opt.step()`. A funcao `ltn_training_sat` constroi um termo de `SatAgg` com `ltn.Variable`, `ltn.Predicate`, `ltn.Connective` e `ltn.Quantifier`, e esse termo entra obrigatoriamente na perda de treinamento. O CSV registra `ltn_training_active=1` quando esse termo real do LTNtorch participou do treino. As formulas fuzzy locais permanecem como complemento para cobrir a base completa de regras do trabalho. Como os predicados neurais, os conectivos fuzzy e o agregador `satAgg` sao diferenciaveis, o PyTorch consegue propagar o erro das formulas ate os pesos das redes dos predicados.
 
 Neste trabalho, o grounding usado foi:
 

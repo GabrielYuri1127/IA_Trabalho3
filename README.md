@@ -35,7 +35,7 @@ Durante o treinamento, a perda combina fatos supervisionados e satisfatibilidade
 Loss_total = Loss_fatos + lambda * (1 - satAgg)
 ```
 
-Quando a biblioteca `LTNtorch` está disponível, o código usa objetos da própria biblioteca (`ltn.Variable`, `ltn.Predicate`, `ltn.Connective`, `ltn.Quantifier` e `SatAgg`) como parte da perda de treinamento.
+O treinamento exige `LTNtorch` e usa objetos da própria biblioteca (`ltn.Variable`, `ltn.Predicate`, `ltn.Connective`, `ltn.Quantifier` e `SatAgg`) como parte da perda de treinamento.
 
 O CSV registra `ltn_training_active=1` quando esse termo real do LTNtorch participou do treinamento.
 
@@ -210,7 +210,7 @@ O arquivo `resultados_clevr_ltn.csv` contém os resultados completos, incluindo:
 pip install torch numpy matplotlib LTNtorch
 ```
 
-Caso `LTNtorch` não instale com esse nome:
+Caso `LTNtorch` não instale com esse nome no ambiente local, a alternativa abaixo pode ser testada, mas a execução usada na entrega instala `LTNtorch` explicitamente:
 
 ```bash
 pip install ltn
