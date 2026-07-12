@@ -22,7 +22,17 @@ O trabalho usa uma versao simplificada do CLEVR. Em vez de processar imagens rea
 | `[5,6,7,8,9]` | Forma one-hot: circulo, quadrado, cilindro, cone, triangulo |
 | `[10]` | Tamanho: pequeno `0.0`, grande `1.0` |
 
-Em cada execucao foram gerados 25 objetos aleatorios. O experimento foi repetido 5 vezes com sementes diferentes, conforme solicitado no enunciado.
+Conforme a orientacao do professor, cada cena possui 5 classes de objetos, com 5 objetos de cada classe de forma, totalizando 25 objetos por cena:
+
+| Classe de forma | Quantidade por cena |
+|---|---:|
+| Circulo | 5 |
+| Quadrado | 5 |
+| Cilindro | 5 |
+| Cone | 5 |
+| Triangulo | 5 |
+
+O experimento treina o reasoning em uma unica cena balanceada (`train_seed=2025`) e testa a generalizacao em 5 cenas aleatorias distintas (`seed=42` a `seed=46`).
 
 ## 3. Predicados Implementados
 
@@ -158,64 +168,75 @@ Tambem foi reportado o valor de satisfatibilidade global `satAgg`, que indica o 
 
 ## 7. Resultados
 
-O experimento completo foi executado com 5 sementes aleatorias, 25 objetos por cena e 350 epocas por execucao. O arquivo completo gerado esta em `resultados_clevr_ltn.csv`.
+O experimento completo foi executado com uma cena de treino balanceada (`train_seed=2025`) e 5 cenas aleatorias de teste, todas com 25 objetos e 5 objetos por classe de forma. O arquivo completo gerado esta em `resultados_clevr_ltn.csv`.
 
 Comando usado:
 
 ```bash
-python clevr_ltn_experimentos.py --runs 5 --epochs 350 --out resultados_clevr_ltn.csv --plot-dir figuras
+python clevr_ltn_experimentos.py --runs 5 --epochs 350 --train-seed 2025 --seed 42 --out resultados_clevr_ltn.csv --plot-dir figuras
 ```
 
-| Execucao | Seed | satAgg | Accuracy | Precision | Recall | F1 |
-|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 42 | 0.5914 | 0.9460 | 0.9217 | 0.8913 | 0.9062 |
-| 2 | 43 | 0.5989 | 0.9387 | 0.8869 | 0.8948 | 0.8908 |
-| 3 | 44 | 0.6165 | 0.9393 | 0.8892 | 0.9046 | 0.8968 |
-| 4 | 45 | 0.6097 | 0.9277 | 0.8696 | 0.8744 | 0.8720 |
-| 5 | 46 | 0.6170 | 0.9361 | 0.8516 | 0.9307 | 0.8894 |
+| Execucao | Train seed | Test seed | satAgg | Accuracy | Precision | Recall | F1 |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 2025 | 42 | 0.6051 | 0.8044 | 0.6729 | 0.6364 | 0.6542 |
+| 2 | 2025 | 43 | 0.5890 | 0.7184 | 0.5010 | 0.6720 | 0.5740 |
+| 3 | 2025 | 44 | 0.5676 | 0.7394 | 0.5423 | 0.6636 | 0.5968 |
+| 4 | 2025 | 45 | 0.6113 | 0.8085 | 0.6547 | 0.6665 | 0.6605 |
+| 5 | 2025 | 46 | 0.5969 | 0.7719 | 0.5706 | 0.7365 | 0.6430 |
 
 Resumo:
 
 | Metrica | Media | Desvio padrao |
 |---|---:|---:|
-| satAgg | 0.6067 | 0.0101 |
-| Accuracy | 0.9376 | 0.0059 |
-| Precision | 0.8838 | 0.0233 |
-| Recall | 0.8991 | 0.0185 |
-| F1 | 0.8910 | 0.0112 |
+| satAgg | 0.5940 | 0.0152 |
+| Accuracy | 0.7685 | 0.0354 |
+| Precision | 0.5883 | 0.0657 |
+| Recall | 0.6750 | 0.0331 |
+| F1 | 0.6257 | 0.0341 |
+
+Contagem de classes nas cenas de teste:
+
+| Execucao | Circulos | Quadrados | Cilindros | Cones | Triangulos |
+|---:|---:|---:|---:|---:|---:|
+| 1 | 5 | 5 | 5 | 5 | 5 |
+| 2 | 5 | 5 | 5 | 5 | 5 |
+| 3 | 5 | 5 | 5 | 5 | 5 |
+| 4 | 5 | 5 | 5 | 5 | 5 |
+| 5 | 5 | 5 | 5 | 5 | 5 |
 
 Satisfatibilidade media das formulas e perguntas:
 
 | Coluna no CSV | Formula/pergunta | Media | Desvio padrao |
 |---|---|---:|---:|
-| `shape_unique` | Forma unica | 0.9998 | 0.0000 |
-| `shape_coverage` | Cobertura de formas | 0.9992 | 0.0000 |
-| `left_irreflexive` | LeftOf irreflexivo | 0.9726 | 0.0054 |
-| `left_asymmetric` | LeftOf assimetrico | 0.9469 | 0.0051 |
-| `left_right_inverse` | Left/Right inversos | 0.9084 | 0.0134 |
-| `left_transitive` | LeftOf transitivo | 0.9878 | 0.0013 |
-| `below_above_inverse` | Below/Above inversos | 0.9483 | 0.0084 |
-| `below_transitive` | Below transitivo | 0.9946 | 0.0023 |
-| `between_rule` | Regra InBetween | 0.7694 | 0.0075 |
-| `last_left` | Objeto mais a esquerda | 0.4439 | 0.0045 |
-| `last_right` | Objeto mais a direita | 0.4413 | 0.0123 |
-| `can_stack_rule` | Regra CanStack | 0.9993 | 0.0004 |
-| `query_small_below_cylinder_left_square` | Pergunta composta 1 | 0.0572 | 0.0234 |
-| `query_green_cone_between` | Pergunta composta 2 | 0.1452 | 0.0825 |
-| `query_triangles_close_same_size` | Pergunta composta 3 | 0.9426 | 0.0421 |
-| `ltn_api_sat_check` | Auditoria complementar via LTNtorch | 0.6120 | 0.0147 |
+| `shape_unique` | Forma unica | 0.9995 | 0.0001 |
+| `shape_coverage` | Cobertura de formas | 0.9943 | 0.0013 |
+| `left_irreflexive` | LeftOf irreflexivo | 0.9373 | 0.0294 |
+| `left_asymmetric` | LeftOf assimetrico | 0.9154 | 0.0190 |
+| `left_right_inverse` | Left/Right inversos | 0.8168 | 0.0106 |
+| `left_transitive` | LeftOf transitivo | 0.9742 | 0.0033 |
+| `below_above_inverse` | Below/Above inversos | 0.8544 | 0.0133 |
+| `below_transitive` | Below transitivo | 0.9760 | 0.0059 |
+| `between_rule` | Regra InBetween | 0.5605 | 0.0379 |
+| `last_left` | Objeto mais a esquerda | 0.4343 | 0.0070 |
+| `last_right` | Objeto mais a direita | 0.4410 | 0.0112 |
+| `can_stack_rule` | Regra CanStack | 0.9847 | 0.0219 |
+| `query_small_below_cylinder_left_square` | Pergunta composta 1 | 0.0672 | 0.0172 |
+| `query_green_cone_between` | Pergunta composta 2 | 0.1634 | 0.0865 |
+| `query_triangles_close_same_size` | Pergunta composta 3 | 0.9612 | 0.0178 |
+| `ltn_api_sat_check` | Auditoria complementar via LTNtorch | 0.9437 | 0.0037 |
 
-Os valores baixos nas consultas existenciais compostas indicam que, nos cenarios aleatorios gerados, nem sempre existe uma configuracao que satisfaca simultaneamente todas as restricoes. Isso e esperado em dados aleatorios e faz parte da interpretacao logica da consulta.
+A queda natural nas metricas em relacao a um treino feito separadamente em cada cena e esperada: agora o modelo aprende em uma unica cena e e avaliado em cenas aleatorias novas. Isso deixa o experimento mais alinhado com a ideia do professor de testar generalizacao de regras de reasoning com poucos dados.
 
-Figuras geradas para visualizacao das cenas aleatorias:
+Figuras geradas para visualizacao das cenas:
 
-| Seed | Figura |
-|---:|---|
-| 42 | [scene_seed_42.png](figuras/scene_seed_42.png) |
-| 43 | [scene_seed_43.png](figuras/scene_seed_43.png) |
-| 44 | [scene_seed_44.png](figuras/scene_seed_44.png) |
-| 45 | [scene_seed_45.png](figuras/scene_seed_45.png) |
-| 46 | [scene_seed_46.png](figuras/scene_seed_46.png) |
+| Papel | Seed | Figura |
+|---|---:|---|
+| Treino | 2025 | [scene_seed_2025.png](figuras/scene_seed_2025.png) |
+| Teste | 42 | [scene_seed_42.png](figuras/scene_seed_42.png) |
+| Teste | 43 | [scene_seed_43.png](figuras/scene_seed_43.png) |
+| Teste | 44 | [scene_seed_44.png](figuras/scene_seed_44.png) |
+| Teste | 45 | [scene_seed_45.png](figuras/scene_seed_45.png) |
+| Teste | 46 | [scene_seed_46.png](figuras/scene_seed_46.png) |
 
 ## 8. Explicacao do Raciocinio das Perguntas
 
@@ -231,7 +252,7 @@ O uso de formulas logicas permite avaliar nao apenas se os predicados acertam ex
 
 As consultas compostas testam a capacidade do modelo de combinar atributos e relacoes. A primeira consulta une tamanho, forma e relacoes verticais/horizontais. A segunda usa forma, cor e a relacao ternaria `InBetween`. A terceira testa uma implicacao condicional envolvendo proximidade e tamanho.
 
-Em geral, formulas ligadas diretamente ao vetor de atributos, como forma e tamanho, tiveram satisfatibilidade alta. Relacoes espaciais compostas tendem a ser mais dificeis, especialmente `InBetween` e regras com quantificadores existenciais ou universais aninhados, pois pequenos erros em predicados basicos podem se propagar para a formula composta.
+Como o treinamento usa uma unica cena, as metricas de classificacao avaliam uma generalizacao mais dificil: os predicados aprendidos precisam funcionar em configuracoes espaciais novas. Isso corresponde melhor ao objetivo do trabalho, que e raciocinio neuro-simbolico e nao apenas classificacao treinada com muitos exemplos.
 
 ## 10. Conclusao
 
