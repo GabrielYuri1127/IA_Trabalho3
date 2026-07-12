@@ -5,6 +5,7 @@ Este repositorio contem a implementacao e o relatorio do trabalho final de Funda
 ## Arquivos principais
 
 - `clevr_ltn_experimentos.py`: script dos 5 experimentos com CLEVR simplificado.
+- `trabalho_ltn_clevr.ipynb`: notebook executavel para rodar o teste, o experimento completo, abrir metricas e visualizar figuras.
 - `RELATORIO_TRABALHO_LTN.md`: relatorio com explicacao teorica, formulas e resultados finais.
 - `resultados_clevr_ltn.csv`: metricas geradas pelo experimento completo.
 - `figuras/`: imagens dos 5 cenarios aleatorios gerados.
@@ -25,7 +26,15 @@ Se `LTNtorch` nao instalar com esse nome no ambiente usado, tente:
 pip install ltn
 ```
 
-## Como rodar o experimento completo
+## Como rodar pelo notebook
+
+Abra o arquivo abaixo e execute as celulas em ordem:
+
+- [trabalho_ltn_clevr.ipynb](trabalho_ltn_clevr.ipynb)
+
+O notebook contem uma execucao curta de teste, a execucao completa, a leitura do CSV e a visualizacao das figuras.
+
+## Como rodar o experimento completo pelo terminal
 
 ```bash
 python clevr_ltn_experimentos.py --runs 5 --epochs 350 --out resultados_clevr_ltn.csv --plot-dir figuras
@@ -42,6 +51,7 @@ Resultados finais:
 
 - [Relatorio preenchido](RELATORIO_TRABALHO_LTN.md)
 - [CSV de resultados](resultados_clevr_ltn.csv)
+- [Notebook executavel](trabalho_ltn_clevr.ipynb)
 
 Figuras das cenas:
 
