@@ -41,6 +41,7 @@ SHAPES = ["circle", "square", "ellipse", "rectangle", "triangle"]
 EPS = 1e-7
 DEFAULT_MIN_DISTANCE = 0.08
 DEFAULT_OVERLAP_MARGIN = 0.012
+DEFAULT_CLOSE_THRESHOLD = 0.25
 
 
 @dataclass
@@ -202,16 +203,9 @@ def gt_above(s: Scene):
     return gt_below(s).T
 
 
-def gt_close(s: Scene, threshold: float = 0.25):
+def gt_close(s: Scene, threshold: float = DEFAULT_CLOSE_THRESHOLD):
     dist = torch.cdist(s.x[:, :2], s.x[:, :2])
     return ((dist < threshold) & (dist > 0)).float()
-
-
-def gt_close_soft(s: Scene):
-    dist2 = torch.cdist(s.x[:, :2], s.x[:, :2]) ** 2
-    y = torch.exp(-2.0 * dist2)
-    y.fill_diagonal_(0.0)
-    return y
 
 
 def gt_same_size(s: Scene):
@@ -329,7 +323,7 @@ def supervised_loss(m: Model, s: Scene):
     for i, c in enumerate(COLORS): losses.append(F.binary_cross_entropy(u[f"is_{c}"], (s.color == i).float()))
     for i, f in enumerate(SHAPES): losses.append(F.binary_cross_entropy(u[f"is_{f}"], (s.shape == i).float()))
     losses += [F.binary_cross_entropy(u["is_small"], (s.size == 0).float()), F.binary_cross_entropy(u["is_big"], (s.size == 1).float())]
-    targets = {"left": gt_left(s), "right": gt_right(s), "below": gt_below(s), "above": gt_above(s), "close": gt_close_soft(s), "same_size": gt_same_size(s), "can_stack": gt_can_stack(s)}
+    targets = {"left": gt_left(s), "right": gt_right(s), "below": gt_below(s), "above": gt_above(s), "close": gt_close(s), "same_size": gt_same_size(s), "can_stack": gt_can_stack(s)}
     losses += [F.binary_cross_entropy(b[k], v) for k, v in targets.items()]
     losses.append(F.binary_cross_entropy(m.ternary(s), gt_between(s)))
     return torch.stack(losses).mean()
@@ -490,6 +484,8 @@ def ltn_training_sat(m: Model, s: Scene):
         right = ltn.Predicate(m.rel["right"])
         below = ltn.Predicate(m.rel["below"])
         above = ltn.Predicate(m.rel["above"])
+        close = ltn.Predicate(m.rel["close"])
+        same_size = ltn.Predicate(m.rel["same_size"])
         can_stack = ltn.Predicate(m.rel["can_stack"])
         is_rectangle = ltn.Predicate(m.shape["rectangle"])
         is_triangle = ltn.Predicate(m.shape["triangle"])
@@ -521,6 +517,8 @@ def ltn_training_sat(m: Model, s: Scene):
             Forall([x, y], Implies(left(x, y), Not(left(y, x)))),
             Forall([x, y], equiv(left(x, y), right(y, x))),
             Forall([x, y], equiv(below(x, y), above(y, x))),
+            Forall([x, y], equiv(close(x, y), close(y, x))),
+            Forall([x, y], Implies(And(And(is_triangle(x), is_triangle(y)), close(x, y)), same_size(x, y))),
             Forall([x, y], Implies(can_stack(x, y), above(x, y))),
             Forall([x, y], Implies(can_stack(x, y), Not(Or(is_rectangle(y), is_triangle(y))))),
         ]
@@ -533,6 +531,8 @@ def train(s: Scene, epochs: int, lr: float, axiom_weight: float):
     m = Model()
     opt = torch.optim.Adam(m.parameters(), lr=lr)
     use_ltn_training = HAS_LTN
+    ltn_training_active = False
+    last_ltn_sat = None
     for e in range(epochs):
         opt.zero_grad()
         facts = supervised_loss(m, s)
@@ -541,10 +541,15 @@ def train(s: Scene, epochs: int, lr: float, axiom_weight: float):
         if ltn_sat is None and use_ltn_training:
             print("Aviso: termo LTNtorch de treino indisponivel; usando formulas fuzzy locais.")
             use_ltn_training = False
+        if ltn_sat is not None:
+            ltn_training_active = True
+            last_ltn_sat = float(ltn_sat.detach().item())
         sat = satagg([custom_sat, ltn_sat]) if ltn_sat is not None else custom_sat
         loss = facts + axiom_weight * (1 - sat)
         loss.backward(); opt.step()
         if (e + 1) % 100 == 0: print(f"epoch={e+1:04d} loss={loss.item():.4f} satAgg={sat.item():.4f}")
+    m.ltn_training_active = int(ltn_training_active)
+    m.ltn_training_sat_final = last_ltn_sat if last_ltn_sat is not None else float("nan")
     return m
 
 
@@ -665,6 +670,10 @@ def run(args):
             "min_bbox_gap": min_bbox_gap(s),
             "overlap_ok": int(min_pair_distance(s) >= args.min_distance),
             "bbox_overlap_ok": int(min_bbox_gap(s) >= args.overlap_margin),
+            "close_threshold": DEFAULT_CLOSE_THRESHOLD,
+            "close_training_aligned": 1,
+            "ltn_training_active": getattr(model, "ltn_training_active", 0),
+            "ltn_training_sat_final": getattr(model, "ltn_training_sat_final", float("nan")),
             **evaluate(model, s),
         }
         rows.append(row)

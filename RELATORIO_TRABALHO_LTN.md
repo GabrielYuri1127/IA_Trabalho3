@@ -25,7 +25,7 @@ Na LTN, a diferenca e que a saida usada na perda nao e apenas uma classe previst
 Loss_total = Loss_fatos + lambda * (1 - satAgg)
 ```
 
-No codigo, isso aparece no treinamento como `loss = facts + axiom_weight * (1 - sat)`, seguido de `loss.backward()` e `opt.step()`. Quando `LTNtorch` esta instalado, a funcao `ltn_training_sat` constroi um termo de `SatAgg` com `ltn.Variable`, `ltn.Predicate`, `ltn.Connective` e `ltn.Quantifier`, e esse termo tambem entra na perda de treinamento. As formulas fuzzy locais permanecem como complemento e fallback. Como os predicados neurais, os conectivos fuzzy e o agregador `satAgg` sao diferenciaveis, o PyTorch consegue propagar o erro das formulas ate os pesos das redes dos predicados.
+No codigo, isso aparece no treinamento como `loss = facts + axiom_weight * (1 - sat)`, seguido de `loss.backward()` e `opt.step()`. Quando `LTNtorch` esta instalado, a funcao `ltn_training_sat` constroi um termo de `SatAgg` com `ltn.Variable`, `ltn.Predicate`, `ltn.Connective` e `ltn.Quantifier`, e esse termo tambem entra na perda de treinamento. O CSV registra `ltn_training_active=1` quando esse termo real do LTNtorch participou do treino. As formulas fuzzy locais permanecem como complemento e fallback. Como os predicados neurais, os conectivos fuzzy e o agregador `satAgg` sao diferenciaveis, o PyTorch consegue propagar o erro das formulas ate os pesos das redes dos predicados.
 
 Neste trabalho, o grounding usado foi:
 
@@ -64,6 +64,8 @@ Conforme a orientacao do professor, cada cena possui 5 classes de objetos, com 5
 O experimento treina o reasoning em uma unica cena balanceada (`train_seed=2025`) e testa a generalizacao em 5 cenas aleatorias distintas (`seed=42` a `seed=46`).
 
 Para evitar sobreposicao visual entre objetos, a geracao das posicoes usa rejeicao amostral com duas condicoes: distancia minima de `0.08` entre centroides e teste geometrico de caixas visuais dos objetos desenhados. O CSV registra `min_pair_distance`, `overlap_ok`, `min_bbox_gap` e `bbox_overlap_ok` para auditar esse tratamento.
+
+O predicado `CloseTo(x,y)` usa um criterio unico em todo o experimento: distancia euclidiana menor que `0.25`, excluindo o par `(x,x)`. O mesmo criterio e usado no treinamento supervisionado, na avaliacao e na consulta q3. O CSV registra `close_threshold` e `close_training_aligned` para auditar esse alinhamento.
 
 ## 3. Predicados Implementados
 

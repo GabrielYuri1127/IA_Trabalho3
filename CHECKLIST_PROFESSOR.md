@@ -52,7 +52,7 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 |---|---|---|
 | `LeftOf(x,y)` | Atendido | `gt_left`, `Model.rel`, CSV |
 | `RightOf(x,y)` | Atendido | `gt_right`, `Model.rel`, CSV |
-| `CloseTo(x,y)` | Atendido | `gt_close_soft`, `Model.rel`, CSV |
+| `CloseTo(x,y)` | Atendido | `gt_close`, `Model.rel`, colunas `close_threshold` e `close_training_aligned` no CSV |
 | `InBetween(x,y,z)` | Atendido | `gt_between`, `Model.between`, CSV |
 | Irreflexividade de `LeftOf` | Atendido | `left_irreflexive` |
 | Assimetria de `LeftOf` | Atendido | `left_asymmetric` |
@@ -95,6 +95,7 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 | Breve descricao de NeSy e LTN | Atendido | secao 1 do relatorio |
 | Relacao entre rede neural, perda e gradiente | Atendido | secao 1 do relatorio e `train()` no codigo |
 | Uso efetivo de LTNtorch no treinamento | Atendido | `ltn_training_sat` e `train()` no codigo |
+| Auditoria do uso real de LTNtorch no treino | Atendido | colunas `ltn_training_active` e `ltn_training_sat_final` no CSV |
 | Descricao do dataset CLEVR simplificado | Atendido | secao 2 do relatorio |
 | Valor de satisfacao das formulas | Atendido | `resultados_clevr_ltn.csv` e secao 7 do relatorio |
 | 5 execucoes em datasets aleatorios distintos | Atendido | seeds de teste 42, 43, 44, 45, 46 |
@@ -116,5 +117,6 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 - `RELATORIO_TRABALHO_LTN.md`: relatorio textual.
 - `resultados_clevr_ltn.csv`: resultados completos.
 - `figuras/`: cenas geradas.
+- `requirements.txt`: dependencias Python.
 - `.github/workflows/test.yml`: teste automatico rapido.
 - `.github/workflows/full-experiment.yml`: experimento completo automatico.

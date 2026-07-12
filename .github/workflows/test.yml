@@ -20,7 +20,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install numpy matplotlib torch
-          pip install LTNtorch || true
+          pip install LTNtorch
 
       - name: Syntax check
         run: python -m py_compile clevr_ltn_experimentos.py
@@ -39,6 +39,9 @@ jobs:
               assert int(row[key]) == 5, (key, row[key])
           assert int(row['overlap_ok']) == 1, row['min_pair_distance']
           assert int(row['bbox_overlap_ok']) == 1, row['min_bbox_gap']
+          assert float(row['close_threshold']) == 0.25, row['close_threshold']
+          assert int(row['close_training_aligned']) == 1, row['close_training_aligned']
+          assert int(row['ltn_training_active']) == 1, row['ltn_training_active']
           for key in ['q1_gt_exists', 'q1_best_witness_conf', 'q2_gt_exists', 'q2_best_witness_conf', 'q3_triangle_close_pairs']:
               assert key in row, key
           for key in ['can_stack_above_rule', 'can_stack_stability_rule', 'unary_accuracy', 'relation_accuracy', 'all_accuracy']:

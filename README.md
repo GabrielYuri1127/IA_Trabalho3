@@ -37,6 +37,8 @@ Loss_total = Loss_fatos + lambda * (1 - satAgg)
 
 Quando a biblioteca `LTNtorch` está disponível, o código usa objetos da própria biblioteca (`ltn.Variable`, `ltn.Predicate`, `ltn.Connective`, `ltn.Quantifier` e `SatAgg`) como parte da perda de treinamento.
 
+O CSV registra `ltn_training_active=1` quando esse termo real do LTNtorch participou do treinamento.
+
 ---
 
 ## 3. Dataset CLEVR Simplificado
@@ -83,6 +85,8 @@ Conforme a orientação do professor:
 - o objetivo é avaliar generalização de regras de raciocínio.
 
 As cenas também usam tratamento de sobreposição visual por distância entre centroides e por caixas geométricas dos objetos.
+
+O predicado `CloseTo(x, y)` usa o mesmo critério em todo o experimento: distância euclidiana menor que `0.25`, ignorando pares do tipo `(x, x)`. Esse critério é usado no treinamento, na avaliação e na consulta q3.
 
 ---
 
@@ -173,8 +177,10 @@ Resumo das métricas:
 O arquivo `resultados_clevr_ltn.csv` contém os resultados completos, incluindo:
 
 - satisfatibilidade de cada fórmula;
+- uso efetivo do LTNtorch no treinamento (`ltn_training_active` e `ltn_training_sat_final`);
 - métricas por cena de teste;
 - auditoria de overlapping (`min_bbox_gap` e `bbox_overlap_ok`);
+- critério alinhado de proximidade (`close_threshold` e `close_training_aligned`);
 - evidências interpretáveis das consultas;
 - auditoria XAI do par mais à esquerda e mais à direita.
 
@@ -189,6 +195,7 @@ O arquivo `resultados_clevr_ltn.csv` contém os resultados completos, incluindo:
 | `RELATORIO_TRABALHO_LTN.md` | Relatório completo do trabalho |
 | `CHECKLIST_PROFESSOR.md` | Checklist dos requisitos do enunciado |
 | `resultados_clevr_ltn.csv` | Resultados finais do experimento |
+| `requirements.txt` | Dependências Python do projeto |
 | `figuras/` | Cenas de treino e teste geradas |
 | `.github/workflows/test.yml` | Teste rápido no GitHub Actions |
 | `.github/workflows/full-experiment.yml` | Execução completa no GitHub Actions |
