@@ -164,15 +164,15 @@ Resumo das métricas:
 
 | Métrica | Média | Desvio padrão |
 |---|---:|---:|
-| `satAgg` | 0.6133 | 0.0041 |
-| Accuracy relacional | 0.8065 | 0.0110 |
-| Precision relacional | 0.6573 | 0.0332 |
-| Recall relacional | 0.7071 | 0.0438 |
-| F1 relacional | 0.6794 | 0.0140 |
+| `satAgg` | 0.6116 | 0.0038 |
+| Accuracy relacional | 0.8221 | 0.0077 |
+| Precision relacional | 0.7000 | 0.0306 |
+| Recall relacional | 0.6842 | 0.0458 |
+| F1 relacional | 0.6901 | 0.0166 |
 | Accuracy unária | 0.9968 | 0.0030 |
 | F1 unário | 0.9946 | 0.0051 |
-| Accuracy geral | 0.8089 | 0.0109 |
-| F1 geral | 0.6832 | 0.0137 |
+| Accuracy geral | 0.8243 | 0.0076 |
+| F1 geral | 0.6941 | 0.0162 |
 
 O arquivo `resultados_clevr_ltn.csv` contém os resultados completos, incluindo:
 

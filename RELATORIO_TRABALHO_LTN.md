@@ -226,25 +226,25 @@ python clevr_ltn_experimentos.py --runs 5 --epochs 350 \
 
 | Execucao | Train seed | Test seed | satAgg | Accuracy | Precision | Recall | F1 |
 |---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 2025 | 42 | 0.6081 | 0.8123 | 0.6759 | 0.6925 | 0.6841 |
-| 2 | 2025 | 43 | 0.6139 | 0.8159 | 0.6614 | 0.7519 | 0.7037 |
-| 3 | 2025 | 44 | 0.6142 | 0.7923 | 0.6180 | 0.7223 | 0.6661 |
-| 4 | 2025 | 45 | 0.6201 | 0.8179 | 0.7073 | 0.6291 | 0.6659 |
-| 5 | 2025 | 46 | 0.6100 | 0.7943 | 0.6242 | 0.7397 | 0.6770 |
+| 1 | 2025 | 42 | 0.6070 | 0.8264 | 0.7241 | 0.6597 | 0.6904 |
+| 2 | 2025 | 43 | 0.6110 | 0.8322 | 0.7024 | 0.7338 | 0.7178 |
+| 3 | 2025 | 44 | 0.6124 | 0.8105 | 0.6581 | 0.7065 | 0.6814 |
+| 4 | 2025 | 45 | 0.6182 | 0.8254 | 0.7409 | 0.6067 | 0.6671 |
+| 5 | 2025 | 46 | 0.6091 | 0.8163 | 0.6745 | 0.7145 | 0.6939 |
 
 Resumo:
 
 | Metrica | Media | Desvio padrao |
 |---|---:|---:|
-| satAgg | 0.6133 | 0.0041 |
-| Accuracy relacional | 0.8065 | 0.0110 |
-| Precision relacional | 0.6573 | 0.0332 |
-| Recall relacional | 0.7071 | 0.0438 |
-| F1 relacional | 0.6794 | 0.0140 |
+| satAgg | 0.6116 | 0.0038 |
+| Accuracy relacional | 0.8221 | 0.0077 |
+| Precision relacional | 0.7000 | 0.0306 |
+| Recall relacional | 0.6842 | 0.0458 |
+| F1 relacional | 0.6901 | 0.0166 |
 | Accuracy unaria | 0.9968 | 0.0030 |
 | F1 unario | 0.9946 | 0.0051 |
-| Accuracy geral | 0.8089 | 0.0109 |
-| F1 geral | 0.6832 | 0.0137 |
+| Accuracy geral | 0.8243 | 0.0076 |
+| F1 geral | 0.6941 | 0.0162 |
 
 Contagem de classes nas cenas de teste:
 
@@ -256,48 +256,48 @@ Contagem de classes nas cenas de teste:
 | 4 | 5 | 5 | 5 | 5 | 5 |
 | 5 | 5 | 5 | 5 | 5 | 5 |
 
-Tratamento de overlapping:
+Auditoria tecnica de overlapping, `CloseTo` e uso real do LTNtorch:
 
-| Execucao | Test seed | Distancia minima entre centroides | Folga geometrica minima | `overlap_ok` | `bbox_overlap_ok` |
-|---:|---:|---:|---:|---:|---:|
-| 1 | 42 | 0.0828 | 0.0146 | 1 | 1 |
-| 2 | 43 | 0.0852 | 0.0139 | 1 | 1 |
-| 3 | 44 | 0.0812 | 0.0140 | 1 | 1 |
-| 4 | 45 | 0.0863 | 0.0141 | 1 | 1 |
-| 5 | 46 | 0.0931 | 0.0124 | 1 | 1 |
+| Execucao | Test seed | Dist. min. centroides | Folga geometrica | `overlap_ok` | `bbox_overlap_ok` | `close_threshold` | `close_training_aligned` | `ltn_training_active` | `ltn_training_sat_final` |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 42 | 0.0828 | 0.0146 | 1 | 1 | 0.25 | 1 | 1 | 0.9798 |
+| 2 | 43 | 0.0852 | 0.0139 | 1 | 1 | 0.25 | 1 | 1 | 0.9798 |
+| 3 | 44 | 0.0812 | 0.0140 | 1 | 1 | 0.25 | 1 | 1 | 0.9798 |
+| 4 | 45 | 0.0863 | 0.0141 | 1 | 1 | 0.25 | 1 | 1 | 0.9798 |
+| 5 | 46 | 0.0931 | 0.0124 | 1 | 1 | 0.25 | 1 | 1 | 0.9798 |
 
 Satisfatibilidade media das formulas e perguntas:
 
 | Coluna no CSV | Formula/pergunta | Media | Desvio padrao |
 |---|---|---:|---:|
 | `shape_unique` | Forma unica | 0.9992 | 0.0003 |
-| `shape_coverage` | Cobertura de formas | 0.8707 | 0.0535 |
-| `left_irreflexive` | LeftOf irreflexivo | 0.9694 | 0.0043 |
-| `left_asymmetric` | LeftOf assimetrico | 0.9078 | 0.0166 |
-| `left_right_inverse` | Left/Right inversos | 0.8604 | 0.0058 |
-| `left_transitive` | LeftOf transitivo | 0.9734 | 0.0050 |
-| `below_above_inverse` | Below/Above inversos | 0.8673 | 0.0068 |
-| `below_transitive` | Below transitivo | 0.9878 | 0.0068 |
-| `between_rule` | Regra InBetween | 0.6253 | 0.0111 |
-| `last_left` | Objeto mais a esquerda | 0.4162 | 0.0146 |
-| `last_right` | Objeto mais a direita | 0.4237 | 0.0081 |
-| `can_stack_above_rule` | Regra CanStack - objeto acima | 0.9299 | 0.0078 |
-| `can_stack_rule` | Regra CanStack - suporte valido | 0.9994 | 0.0002 |
-| `can_stack_stability_rule` | Regra CanStack - estabilidade | 0.7988 | 0.0144 |
-| `query_small_below_ellipse_left_square` | Pergunta composta 1 | 0.0514 | 0.0112 |
-| `query_green_rectangle_between` | Pergunta composta 2 | 0.1568 | 0.0185 |
-| `query_triangles_close_same_size` | Pergunta composta 3 | 0.9417 | 0.0308 |
-| `ltn_api_sat_check` | Auditoria complementar via LTNtorch | 0.9397 | 0.0073 |
+| `shape_coverage` | Cobertura de formas | 0.8790 | 0.0519 |
+| `left_irreflexive` | LeftOf irreflexivo | 0.9555 | 0.0122 |
+| `left_asymmetric` | LeftOf assimetrico | 0.9263 | 0.0123 |
+| `left_right_inverse` | Left/Right inversos | 0.8701 | 0.0041 |
+| `left_transitive` | LeftOf transitivo | 0.9785 | 0.0038 |
+| `below_above_inverse` | Below/Above inversos | 0.8725 | 0.0064 |
+| `below_transitive` | Below transitivo | 0.9874 | 0.0065 |
+| `between_rule` | Regra InBetween | 0.6367 | 0.0094 |
+| `last_left` | Objeto mais a esquerda | 0.4089 | 0.0124 |
+| `last_right` | Objeto mais a direita | 0.4147 | 0.0084 |
+| `can_stack_above_rule` | Regra CanStack - objeto acima | 0.9271 | 0.0065 |
+| `can_stack_rule` | Regra CanStack - suporte valido | 0.9993 | 0.0002 |
+| `can_stack_stability_rule` | Regra CanStack - estabilidade | 0.7970 | 0.0139 |
+| `query_small_below_ellipse_left_square` | Pergunta composta 1 | 0.0511 | 0.0105 |
+| `query_green_rectangle_between` | Pergunta composta 2 | 0.1431 | 0.0184 |
+| `query_triangles_close_same_size` | Pergunta composta 3 | 0.9846 | 0.0109 |
+| `ltn_api_sat_check` | Auditoria complementar via LTNtorch | 0.9454 | 0.0096 |
 
 Evidencia interpretavel das consultas compostas:
 
 | Execucao | Test seed | q1 GT | q1 melhor testemunha | q1 objeto | q2 GT | q2 melhor testemunha | q2 objeto | q3 pares proximos | q3 violacoes |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 42 | 1 | 0.9963 | 13 | 1 | 0.9981 | 10 | 2 | 0 |
-| 2 | 43 | 1 | 0.9864 | 9 | 1 | 0.9992 | 22 | 6 | 6 |
-| 3 | 44 | 1 | 0.9944 | 8 | 1 | 0.9959 | 15 | 2 | 0 |
-| 4 | 45 | 1 | 0.9967 | 18 | 1 | 0.9991 | 10 | 0 | 0 |
-| 5 | 46 | 1 | 0.9982 | 21 | 1 | 0.9993 | 18 | 2 | 2 |
+| 1 | 42 | 1 | 0.9961 | 13 | 1 | 0.9968 | 10 | 2 | 0 |
+| 2 | 43 | 1 | 0.9897 | 9 | 1 | 0.9988 | 22 | 6 | 6 |
+| 3 | 44 | 1 | 0.9932 | 3 | 1 | 0.9944 | 15 | 2 | 0 |
+| 4 | 45 | 1 | 0.9965 | 20 | 1 | 0.9988 | 10 | 0 | 0 |
+| 5 | 46 | 1 | 0.9980 | 21 | 1 | 0.9990 | 18 | 2 | 2 |
 
 Auditoria XAI do par horizontal extremo:
 
