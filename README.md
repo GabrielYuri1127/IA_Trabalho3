@@ -6,7 +6,9 @@ Este repositorio contem a implementacao e o relatorio do trabalho final de Funda
 
 - Gabriel Yuri
 - Guilherme Gurgel
-- Jenifer
+- Isabela Monteiro
+- Marcele Azevedo
+  
 
 ## Ajuste conforme orientacao do professor
 
