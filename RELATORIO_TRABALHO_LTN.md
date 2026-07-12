@@ -205,21 +205,25 @@ python clevr_ltn_experimentos.py --runs 5 --epochs 350 \
 
 | Execucao | Train seed | Test seed | satAgg | Accuracy | Precision | Recall | F1 |
 |---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 2025 | 42 | 0.6051 | 0.8044 | 0.6729 | 0.6364 | 0.6542 |
-| 2 | 2025 | 43 | 0.5890 | 0.7184 | 0.5010 | 0.6720 | 0.5740 |
-| 3 | 2025 | 44 | 0.5676 | 0.7394 | 0.5423 | 0.6636 | 0.5968 |
-| 4 | 2025 | 45 | 0.6113 | 0.8085 | 0.6547 | 0.6665 | 0.6605 |
-| 5 | 2025 | 46 | 0.5969 | 0.7719 | 0.5706 | 0.7365 | 0.6430 |
+| 1 | 2025 | 42 | 0.6007 | 0.8588 | 0.7437 | 0.7606 | 0.7521 |
+| 2 | 2025 | 43 | 0.5986 | 0.7963 | 0.6288 | 0.7396 | 0.6797 |
+| 3 | 2025 | 44 | 0.5941 | 0.8023 | 0.6454 | 0.7413 | 0.6900 |
+| 4 | 2025 | 45 | 0.5905 | 0.8053 | 0.6589 | 0.6992 | 0.6785 |
+| 5 | 2025 | 46 | 0.6051 | 0.8183 | 0.6802 | 0.7528 | 0.7147 |
 
 Resumo:
 
 | Metrica | Media | Desvio padrao |
 |---|---:|---:|
-| satAgg | 0.5940 | 0.0152 |
-| Accuracy | 0.7685 | 0.0354 |
-| Precision | 0.5883 | 0.0657 |
-| Recall | 0.6750 | 0.0331 |
-| F1 | 0.6257 | 0.0341 |
+| satAgg | 0.5978 | 0.0051 |
+| Accuracy relacional | 0.8162 | 0.0225 |
+| Precision relacional | 0.6714 | 0.0399 |
+| Recall relacional | 0.7387 | 0.0212 |
+| F1 relacional | 0.7030 | 0.0278 |
+| Accuracy unaria | 0.9808 | 0.0148 |
+| F1 unario | 0.9667 | 0.0261 |
+| Accuracy geral | 0.8182 | 0.0223 |
+| F1 geral | 0.7061 | 0.0277 |
 
 Contagem de classes nas cenas de teste:
 
@@ -231,36 +235,47 @@ Contagem de classes nas cenas de teste:
 | 4 | 5 | 5 | 5 | 5 | 5 |
 | 5 | 5 | 5 | 5 | 5 | 5 |
 
+Tratamento de overlapping:
+
+| Execucao | Test seed | Distancia minima entre centroides | `overlap_ok` |
+|---:|---:|---:|---:|
+| 1 | 42 | 0.0807 | 1 |
+| 2 | 43 | 0.0842 | 1 |
+| 3 | 44 | 0.0805 | 1 |
+| 4 | 45 | 0.0816 | 1 |
+| 5 | 46 | 0.0810 | 1 |
+
 Satisfatibilidade media das formulas e perguntas:
 
 | Coluna no CSV | Formula/pergunta | Media | Desvio padrao |
 |---|---|---:|---:|
-| `shape_unique` | Forma unica | 0.9995 | 0.0001 |
-| `shape_coverage` | Cobertura de formas | 0.9943 | 0.0013 |
-| `left_irreflexive` | LeftOf irreflexivo | 0.9373 | 0.0294 |
-| `left_asymmetric` | LeftOf assimetrico | 0.9154 | 0.0190 |
-| `left_right_inverse` | Left/Right inversos | 0.8168 | 0.0106 |
-| `left_transitive` | LeftOf transitivo | 0.9742 | 0.0033 |
-| `below_above_inverse` | Below/Above inversos | 0.8544 | 0.0133 |
-| `below_transitive` | Below transitivo | 0.9760 | 0.0059 |
-| `between_rule` | Regra InBetween | 0.5605 | 0.0379 |
-| `last_left` | Objeto mais a esquerda | 0.4343 | 0.0070 |
-| `last_right` | Objeto mais a direita | 0.4410 | 0.0112 |
-| `can_stack_rule` | Regra CanStack | 0.9847 | 0.0219 |
-| `query_small_below_ellipse_left_square` | Pergunta composta 1 | 0.0672 | 0.0172 |
-| `query_green_rectangle_between` | Pergunta composta 2 | 0.1634 | 0.0865 |
-| `query_triangles_close_same_size` | Pergunta composta 3 | 0.9612 | 0.0178 |
-| `ltn_api_sat_check` | Auditoria complementar via LTNtorch | 0.9437 | 0.0037 |
+| `shape_unique` | Forma unica | 0.9939 | 0.0043 |
+| `shape_coverage` | Cobertura de formas | 0.7333 | 0.0703 |
+| `left_irreflexive` | LeftOf irreflexivo | 0.9292 | 0.0155 |
+| `left_asymmetric` | LeftOf assimetrico | 0.9371 | 0.0099 |
+| `left_right_inverse` | Left/Right inversos | 0.8396 | 0.0096 |
+| `left_transitive` | LeftOf transitivo | 0.9786 | 0.0046 |
+| `below_above_inverse` | Below/Above inversos | 0.8802 | 0.0075 |
+| `below_transitive` | Below transitivo | 0.9729 | 0.0080 |
+| `between_rule` | Regra InBetween | 0.6555 | 0.0273 |
+| `last_left` | Objeto mais a esquerda | 0.4182 | 0.0052 |
+| `last_right` | Objeto mais a direita | 0.4409 | 0.0121 |
+| `can_stack_rule` | Regra CanStack - suporte valido | 0.9792 | 0.0167 |
+| `can_stack_stability_rule` | Regra CanStack - estabilidade | 0.7802 | 0.0374 |
+| `query_small_below_ellipse_left_square` | Pergunta composta 1 | 0.0506 | 0.0119 |
+| `query_green_rectangle_between` | Pergunta composta 2 | 0.1418 | 0.0426 |
+| `query_triangles_close_same_size` | Pergunta composta 3 | 0.9791 | 0.0130 |
+| `ltn_api_sat_check` | Auditoria complementar via LTNtorch | 0.9110 | 0.0169 |
 
 Evidencia interpretavel das consultas compostas:
 
 | Execucao | Test seed | q1 GT | q1 melhor testemunha | q1 objeto | q2 GT | q2 melhor testemunha | q2 objeto | q3 pares proximos | q3 violacoes |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 42 | 1 | 0.9988 | 23 | 1 | 0.9986 | 23 | 2 | 0 |
-| 2 | 43 | 1 | 0.9946 | 15 | 1 | 0.9984 | 4 | 2 | 0 |
-| 3 | 44 | 1 | 0.9976 | 4 | 0 | 0.0013 | 17 | 6 | 4 |
-| 4 | 45 | 1 | 0.9989 | 22 | 1 | 0.9991 | 22 | 0 | 0 |
-| 5 | 46 | 1 | 0.9984 | 3 | 1 | 0.9867 | 19 | 0 | 0 |
+| 1 | 42 | 1 | 0.9989 | 20 | 1 | 0.9880 | 0 | 2 | 2 |
+| 2 | 43 | 1 | 0.9950 | 6 | 1 | 0.9983 | 19 | 2 | 2 |
+| 3 | 44 | 1 | 0.9985 | 7 | 1 | 0.9923 | 18 | 2 | 0 |
+| 4 | 45 | 1 | 0.9983 | 11 | 1 | 0.9994 | 2 | 4 | 0 |
+| 5 | 46 | 1 | 0.9949 | 8 | 1 | 0.9994 | 9 | 6 | 4 |
 
 `q1 GT` e `q2 GT` indicam a resposta booleana calculada diretamente dos atributos e relacoes geometricas da cena. A coluna de melhor testemunha mostra a maior confianca fuzzy encontrada pelo modelo para algum objeto que satisfaz a consulta. Isso ajuda a interpretar casos em que o `satAgg` existencial e baixo: a agregacao fuzzy considera muitos objetos que nao satisfazem a pergunta, mas a melhor testemunha pode confirmar que a consulta foi encontrada.
 
@@ -285,7 +300,7 @@ Pergunta composta 2: o modelo procura um objeto `x` que seja simultaneamente ret
 
 Pergunta composta 3: o modelo avalia todos os pares de objetos. Quando dois objetos sao triangulos e estao proximos segundo `CloseTo(x,y)`, a regra exige que `SameSize(x,y)` tambem seja verdadeiro. Esta e uma implicacao universal; portanto, ela testa consistencia global da cena, nao apenas a existencia de um exemplo.
 
-Para as consultas existenciais, o CSV tambem registra a melhor testemunha. Por exemplo, em q2 a execucao com `seed=44` tem `q2_gt_exists=0` e confianca maxima `0.0013`, coerente com a ausencia de um retangulo verde entre dois objetos. Nas outras quatro cenas, `q2_gt_exists=1` e a melhor testemunha fica proxima de 1.0. Isso torna a resposta mais explicavel do que olhar apenas para o `satAgg` agregado.
+Para as consultas existenciais, o CSV tambem registra a melhor testemunha. Em q1 e q2, todas as cinco cenas tiveram ground-truth positivo (`q1_gt_exists=1` e `q2_gt_exists=1`) e confianca maxima proxima de 1.0. Isso torna a resposta mais explicavel do que olhar apenas para o `satAgg` agregado, pois a agregacao existencial pode ficar baixa mesmo quando ha uma testemunha forte.
 
 ## 9. Discussao
 
