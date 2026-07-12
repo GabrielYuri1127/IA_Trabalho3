@@ -11,6 +11,19 @@ Logic Tensor Networks (LTN) sao uma familia de modelos neuro-simbolicos que mape
 
 No LTNtorch, esse processo segue cinco etapas principais: aterramento dos dados nas formulas, avaliacao dos valores de verdade, agregacao da satisfatibilidade, calculo da perda `1 - satAgg` e retropropagacao para ajustar os parametros dos predicados.
 
+Neste trabalho, o grounding usado foi:
+
+| Elemento logico | Implementacao no experimento |
+|---|---|
+| Constantes/objetos | Vetores reais de 11 atributos |
+| Variaveis `x`, `y`, `z` | Conjuntos de objetos da cena |
+| Predicados unarios | Redes neurais para cor, forma e tamanho |
+| Predicados binarios | Redes neurais para relacoes espaciais entre pares |
+| Predicado ternario | Rede neural para `InBetween(x,y,z)` |
+| Formulas logicas | Operadores fuzzy diferenciaveis e agregacao `satAgg` |
+
+Os conectivos fuzzy foram implementados com negacao padrao `1 - p`, conjuncao por produto, disjuncao probabilistica, implicacao de Reichenbach e agregadores de media-p para `forall` e `exists`. Alem disso, foram usados fatos supervisionados gerados a partir da geometria da cena. Isso evita uma solucao degenerada em que o modelo satisfaz axiomas estruturais de forma trivial, por exemplo aprendendo `LeftOf(x,y)=0` para todos os pares apenas para satisfazer assimetria.
+
 ## 2. Dataset CLEVR Simplificado
 
 O trabalho usa uma versao simplificada do CLEVR. Em vez de processar imagens reais, cada objeto e representado por um vetor de 11 atributos:
@@ -152,6 +165,14 @@ Consulta 3: se dois triangulos estao proximos, entao possuem o mesmo tamanho?
 ```text
 forall x,y: (IsTriangle(x) and IsTriangle(y) and CloseTo(x,y)) -> SameSize(x,y)
 ```
+
+Relacao com os niveis de raciocinio do enunciado:
+
+| Consulta | Nivel | Por que atende |
+|---|---|---|
+| q1 | Nivel 2 - filtragem relacional composta | Combina tamanho, forma, relacao vertical e relacao horizontal |
+| q2 | Nivel 2 - deducao de posicao absoluta | Usa `InBetween` para decidir se o retangulo verde esta entre objetos |
+| q3 | Nivel 4 - implicacao material | Avalia uma regra condicional universal e evidencia o caso de verdade vacua quando nao ha pares proximos |
 
 ## 6. Metricas
 

@@ -79,6 +79,9 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 | Objeto pequeno abaixo de elipse e a esquerda de quadrado | Atendido | `query_small_below_ellipse_left_square` |
 | Retangulo verde entre dois objetos | Atendido | `query_green_rectangle_between` |
 | Triangulos proximos devem ter mesmo tamanho | Atendido | `query_triangles_close_same_size` |
+| Nivel 2 - filtragem relacional composta | Atendido | q1 no relatorio secao 5 |
+| Nivel 2 - deducao de posicao absoluta | Atendido | q2 no relatorio secao 5 |
+| Nivel 4 - implicacao material / verdade vacua | Atendido | q3 no relatorio secoes 5 e 8 |
 
 ## Entregas
 

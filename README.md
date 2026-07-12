@@ -14,6 +14,8 @@ O dataset nao usa 5 objetos no total. Ele usa 5 classes de objetos, com 5 objeto
 
 O experimento treina os predicados e regras de reasoning em uma cena balanceada e depois testa a generalizacao em 5 cenas/datasets aleatorios distintos, tambem balanceados.
 
+As consultas compostas cobrem os niveis de raciocinio pedidos no material da atividade: q1 e q2 sao de raciocinio espacial/relacional multi-hop, e q3 e uma implicacao material do nivel condicional.
+
 ## Arquivos principais
 
 - `clevr_ltn_experimentos.py`: script do experimento CLEVR simplificado com treino unico e 5 testes aleatorios.
