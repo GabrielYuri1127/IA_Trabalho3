@@ -227,6 +227,18 @@ Satisfatibilidade media das formulas e perguntas:
 | `query_triangles_close_same_size` | Pergunta composta 3 | 0.9612 | 0.0178 |
 | `ltn_api_sat_check` | Auditoria complementar via LTNtorch | 0.9437 | 0.0037 |
 
+Evidencia interpretavel das consultas compostas:
+
+| Execucao | Test seed | q1 GT | q1 melhor testemunha | q1 objeto | q2 GT | q2 melhor testemunha | q2 objeto | q3 pares proximos | q3 violacoes |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 42 | 1 | 0.9988 | 23 | 1 | 0.9986 | 23 | 2 | 0 |
+| 2 | 43 | 1 | 0.9946 | 15 | 1 | 0.9984 | 4 | 2 | 0 |
+| 3 | 44 | 1 | 0.9976 | 4 | 0 | 0.0013 | 17 | 6 | 4 |
+| 4 | 45 | 1 | 0.9989 | 22 | 1 | 0.9991 | 22 | 0 | 0 |
+| 5 | 46 | 1 | 0.9984 | 3 | 1 | 0.9867 | 19 | 0 | 0 |
+
+`q1 GT` e `q2 GT` indicam a resposta booleana calculada diretamente dos atributos e relacoes geometricas da cena. A coluna de melhor testemunha mostra a maior confianca fuzzy encontrada pelo modelo para algum objeto que satisfaz a consulta. Isso ajuda a interpretar casos em que o `satAgg` existencial e baixo: a agregacao fuzzy considera muitos objetos que nao satisfazem a pergunta, mas a melhor testemunha pode confirmar que a consulta foi encontrada.
+
 A queda natural nas metricas em relacao a um treino feito separadamente em cada cena e esperada: agora o modelo aprende em uma unica cena e e avaliado em cenas aleatorias novas. Isso deixa o experimento mais alinhado com a ideia do professor de testar generalizacao de regras de reasoning com poucos dados.
 
 Figuras geradas para visualizacao das cenas:
@@ -247,6 +259,8 @@ Pergunta composta 1: o modelo procura um objeto `x` pequeno. Depois verifica se 
 Pergunta composta 2: o modelo procura um objeto `x` que seja simultaneamente retangulo e verde. Em seguida, usa `InBetween(x,y,z)` para verificar se esse retangulo fica entre outros dois objetos no eixo horizontal. Como a cena e aleatoria, a consulta pode ter baixa satisfatibilidade quando nao ha retangulo verde em posicao intermediaria.
 
 Pergunta composta 3: o modelo avalia todos os pares de objetos. Quando dois objetos sao triangulos e estao proximos segundo `CloseTo(x,y)`, a regra exige que `SameSize(x,y)` tambem seja verdadeiro. Esta e uma implicacao universal; portanto, ela testa consistencia global da cena, nao apenas a existencia de um exemplo.
+
+Para as consultas existenciais, o CSV tambem registra a melhor testemunha. Por exemplo, em q2 a execucao com `seed=44` tem `q2_gt_exists=0` e confianca maxima `0.0013`, coerente com a ausencia de um retangulo verde entre dois objetos. Nas outras quatro cenas, `q2_gt_exists=1` e a melhor testemunha fica proxima de 1.0. Isso torna a resposta mais explicavel do que olhar apenas para o `satAgg` agregado.
 
 ## 9. Discussao
 
