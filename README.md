@@ -8,8 +8,8 @@ O dataset nao usa 5 objetos no total. Ele usa 5 classes de objetos, com 5 objeto
 
 - 5 circulos
 - 5 quadrados
-- 5 cilindros
-- 5 cones
+- 5 elipses
+- 5 retangulos
 - 5 triangulos
 
 O experimento treina os predicados e regras de reasoning em uma cena balanceada e depois testa a generalizacao em 5 cenas/datasets aleatorios distintos, tambem balanceados.

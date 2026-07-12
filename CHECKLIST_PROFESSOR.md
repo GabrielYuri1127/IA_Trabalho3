@@ -7,7 +7,7 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 - Nao sao 5 objetos no total.
 - Sao 5 classes de objetos.
 - Cada classe aparece 5 vezes.
-- Portanto, cada cena possui 25 objetos: 5 circulos, 5 quadrados, 5 cilindros, 5 cones e 5 triangulos.
+- Portanto, cada cena possui 25 objetos: 5 circulos, 5 quadrados, 5 elipses, 5 retangulos e 5 triangulos.
 - O objetivo principal nao e apenas classificar, mas testar reasoning.
 - O experimento treina em uma cena balanceada e testa em datasets/cenas aleatorios distintos.
 
@@ -18,7 +18,7 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 | CLEVR simplificado com vetor de 11 atributos | Atendido | `clevr_ltn_experimentos.py`, secao 2 do relatorio |
 | Coordenadas normalizadas `(x,y)` | Atendido | `generate_scene` em `clevr_ltn_experimentos.py` |
 | Cores one-hot: vermelho, verde, azul | Atendido | `COLORS`, `generate_scene` |
-| Formas one-hot: circulo, quadrado, cilindro, cone, triangulo | Atendido | `SHAPES`, `generate_scene` |
+| Formas one-hot: circulo, quadrado, elipse, retangulo, triangulo | Atendido | `SHAPES`, `generate_scene` |
 | 5 objetos de cada classe de forma | Atendido | `balanced_shape_indices`, colunas `n_circle` a `n_triangle` no CSV |
 | 25 objetos por cena | Atendido | parametro padrao `--n-objects 25` |
 | Plotar cenario aleatorio | Atendido | pasta `figuras/` |
@@ -36,8 +36,8 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 
 | Item | Status | Onde esta |
 |---|---|---|
-| `isCylinder(x)` | Atendido | `Model.shape`, relatorio secao 3 |
-| `isCone(x)` | Atendido | `Model.shape`, relatorio secao 3 |
+| `isEllipse(x)` | Atendido | `Model.shape`, relatorio secao 3 |
+| `isRectangle(x)` | Atendido | `Model.shape`, relatorio secao 3 |
 | `isTriangle(x)` | Atendido | `Model.shape`, relatorio secao 3 |
 | `isCircle(x)` | Atendido | `Model.shape`, relatorio secao 3 |
 | `isSquare(x)` | Atendido | `Model.shape`, relatorio secao 3 |
@@ -69,15 +69,15 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 | Inverso `Below/Above` | Atendido | `below_above_inverse` |
 | Transitividade vertical | Atendido | `below_transitive` |
 | `CanStack(x,y)` | Atendido | `gt_can_stack`, `can_stack_rule` |
-| Restricao de suporte nao ser cone nem triangulo | Atendido | `gt_can_stack`, `can_stack_rule` |
+| Restricao de suporte nao ser retangulo nem triangulo | Atendido | `gt_can_stack`, `can_stack_rule` |
 | Estabilidade por mesmo tamanho ou alinhamento horizontal | Atendido | `gt_can_stack` |
 
 ## Tarefa 4 - Raciocinio composto
 
 | Consulta | Status | Onde esta |
 |---|---|---|
-| Objeto pequeno abaixo de cilindro e a esquerda de quadrado | Atendido | `query_small_below_cylinder_left_square` |
-| Cone verde entre dois objetos | Atendido | `query_green_cone_between` |
+| Objeto pequeno abaixo de elipse e a esquerda de quadrado | Atendido | `query_small_below_ellipse_left_square` |
+| Retangulo verde entre dois objetos | Atendido | `query_green_rectangle_between` |
 | Triangulos proximos devem ter mesmo tamanho | Atendido | `query_triangles_close_same_size` |
 
 ## Entregas

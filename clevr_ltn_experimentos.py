@@ -6,7 +6,7 @@ Rode com:
 
 O codigo treina em uma cena CLEVR simplificada balanceada e testa em 5 cenas
 aleatorias distintas. Cada cena padrao tem 25 objetos: 5 classes de formas
-(circulo, quadrado, cilindro, cone e triangulo), com 5 objetos de cada classe.
+(circulo, quadrado, elipse, retangulo e triangulo), com 5 objetos de cada classe.
 Em seguida calcula satisfatibilidade das formulas pedidas no enunciado e
 reporta acuracia, precisao, recall e F1.
 """
@@ -37,7 +37,7 @@ except ModuleNotFoundError:
     HAS_LTN = False
 
 COLORS = ["red", "green", "blue"]
-SHAPES = ["circle", "square", "cylinder", "cone", "triangle"]
+SHAPES = ["circle", "square", "ellipse", "rectangle", "triangle"]
 EPS = 1e-7
 
 
@@ -139,7 +139,7 @@ def gt_same_size(s: Scene):
 
 def gt_can_stack(s: Scene):
     support_shape = s.shape[None, :]
-    support_ok = ~((support_shape == SHAPES.index("cone")) | (support_shape == SHAPES.index("triangle")))
+    support_ok = ~((support_shape == SHAPES.index("rectangle")) | (support_shape == SHAPES.index("triangle")))
     same_size = s.size[:, None] == s.size[None, :]
     aligned = torch.abs(s.x[:, None, 0] - s.x[None, :, 0]) < 0.15
     return (support_ok & (same_size | aligned)).float()
@@ -269,9 +269,9 @@ def formulas(m: Model, s: Scene):
         "between_rule": forall(l_eq(between, between_logic)),
         "last_left": exists(torch.stack([forall(row) for row in left[not_eye].reshape(n, n - 1)])),
         "last_right": exists(torch.stack([forall(row) for row in right[not_eye].reshape(n, n - 1)])),
-        "can_stack_rule": forall(l_imp(can_stack, l_not(l_or(u["is_cone"][None, :], u["is_triangle"][None, :])))),
-        "query_small_below_cylinder_left_square": exists(l_and(u["is_small"][:, None, None], u["is_cylinder"][None, :, None], below[:, :, None], u["is_square"][None, None, :], left[:, None, :])),
-        "query_green_cone_between": exists(l_and(u["is_green"][:, None, None], u["is_cone"][:, None, None], between)),
+        "can_stack_rule": forall(l_imp(can_stack, l_not(l_or(u["is_rectangle"][None, :], u["is_triangle"][None, :])))),
+        "query_small_below_ellipse_left_square": exists(l_and(u["is_small"][:, None, None], u["is_ellipse"][None, :, None], below[:, :, None], u["is_square"][None, None, :], left[:, None, :])),
+        "query_green_rectangle_between": exists(l_and(u["is_green"][:, None, None], u["is_rectangle"][:, None, None], between)),
         "query_triangles_close_same_size": forall(l_imp(l_and(u["is_triangle"][:, None], u["is_triangle"][None, :], close), same_size)),
     }
 
@@ -352,14 +352,35 @@ def evaluate(m: Model, s: Scene):
 def plot_scene(s: Scene, out_dir: Path):
     if plt is None:
         return
+    from matplotlib.patches import Circle, Ellipse, Rectangle, RegularPolygon
+
     out_dir.mkdir(parents=True, exist_ok=True)
-    markers = {"circle": "o", "square": "s", "cylinder": "D", "cone": "^", "triangle": "v"}
     cmap = {"red": "tab:red", "green": "tab:green", "blue": "tab:blue"}
     fig, ax = plt.subplots(figsize=(6, 5))
     for i in range(s.n):
-        ax.scatter(float(s.x[i, 0]), float(s.x[i, 1]), s=80 + 70 * int(s.size[i]), c=cmap[COLORS[int(s.color[i])]], marker=markers[SHAPES[int(s.shape[i])]], edgecolor="black")
-        ax.text(float(s.x[i, 0]) + 0.01, float(s.x[i, 1]) + 0.01, str(i), fontsize=8)
+        x = float(s.x[i, 0])
+        y = float(s.x[i, 1])
+        shape = SHAPES[int(s.shape[i])]
+        color = cmap[COLORS[int(s.color[i])]]
+        scale = 0.055 + 0.025 * int(s.size[i])
+
+        if shape == "circle":
+            patch = Circle((x, y), radius=scale * 0.45, facecolor=color, edgecolor="black")
+        elif shape == "square":
+            side = scale * 0.85
+            patch = Rectangle((x - side / 2, y - side / 2), side, side, facecolor=color, edgecolor="black")
+        elif shape == "ellipse":
+            patch = Ellipse((x, y), width=scale * 1.35, height=scale * 0.75, facecolor=color, edgecolor="black")
+        elif shape == "rectangle":
+            width, height = scale * 1.35, scale * 0.75
+            patch = Rectangle((x - width / 2, y - height / 2), width, height, facecolor=color, edgecolor="black")
+        else:
+            patch = RegularPolygon((x, y), numVertices=3, radius=scale * 0.55, orientation=np.pi / 2, facecolor=color, edgecolor="black")
+
+        ax.add_patch(patch)
+        ax.text(x + 0.012, y + 0.012, str(i), fontsize=8)
     ax.set(xlim=(0, 1), ylim=(0, 1), xlabel="x", ylabel="y", title=f"CLEVR simplificado - seed {s.seed}")
+    ax.set_aspect("equal", adjustable="box")
     ax.grid(alpha=0.25)
     fig.tight_layout()
     fig.savefig(out_dir / f"scene_seed_{s.seed}.png", dpi=160)

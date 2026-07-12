@@ -35,7 +35,7 @@ jobs:
           python - <<'PY'
           import csv
           row = next(csv.DictReader(open('smoke_resultados.csv', newline='', encoding='utf-8')))
-          for key in ['n_circle', 'n_square', 'n_cylinder', 'n_cone', 'n_triangle']:
+          for key in ['n_circle', 'n_square', 'n_ellipse', 'n_rectangle', 'n_triangle']:
               assert int(row[key]) == 5, (key, row[key])
           PY
           ls -la

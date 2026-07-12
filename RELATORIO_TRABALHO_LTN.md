@@ -19,7 +19,7 @@ O trabalho usa uma versao simplificada do CLEVR. Em vez de processar imagens rea
 |---|---|
 | `[0,1]` | Coordenadas normalizadas `(x,y)` |
 | `[2,3,4]` | Cor one-hot: vermelho, verde, azul |
-| `[5,6,7,8,9]` | Forma one-hot: circulo, quadrado, cilindro, cone, triangulo |
+| `[5,6,7,8,9]` | Forma one-hot: circulo, quadrado, elipse, retangulo, triangulo |
 | `[10]` | Tamanho: pequeno `0.0`, grande `1.0` |
 
 Conforme a orientacao do professor, cada cena possui 5 classes de objetos, com 5 objetos de cada classe de forma, totalizando 25 objetos por cena:
@@ -28,8 +28,8 @@ Conforme a orientacao do professor, cada cena possui 5 classes de objetos, com 5
 |---|---:|
 | Circulo | 5 |
 | Quadrado | 5 |
-| Cilindro | 5 |
-| Cone | 5 |
+| Elipse | 5 |
+| Retangulo | 5 |
 | Triangulo | 5 |
 
 O experimento treina o reasoning em uma unica cena balanceada (`train_seed=2025`) e testa a generalizacao em 5 cenas aleatorias distintas (`seed=42` a `seed=46`).
@@ -38,7 +38,7 @@ O experimento treina o reasoning em uma unica cena balanceada (`train_seed=2025`
 
 Predicados unarios:
 
-- `IsCircle(x)`, `IsSquare(x)`, `IsCylinder(x)`, `IsCone(x)`, `IsTriangle(x)`
+- `IsCircle(x)`, `IsSquare(x)`, `IsEllipse(x)`, `IsRectangle(x)`, `IsTriangle(x)`
 - `IsSmall(x)`, `IsBig(x)`
 - `IsRed(x)`, `IsGreen(x)`, `IsBlue(x)`
 
@@ -67,7 +67,7 @@ forall x: not(IsShape_i(x) and IsShape_j(x)), para i != j
 2. Cobertura de formas:
 
 ```text
-forall x: IsCircle(x) or IsSquare(x) or IsCylinder(x) or IsCone(x) or IsTriangle(x)
+forall x: IsCircle(x) or IsSquare(x) or IsEllipse(x) or IsRectangle(x) or IsTriangle(x)
 ```
 
 3. Irreflexividade de esquerda:
@@ -127,24 +127,24 @@ InBetween(x,y,z) <-> (LeftOf(y,x) and RightOf(z,x)) or (LeftOf(z,x) and RightOf(
 12. Regra de empilhamento:
 
 ```text
-CanStack(x,y) -> not(IsCone(y) or IsTriangle(y))
+CanStack(x,y) -> not(IsRectangle(y) or IsTriangle(y))
 ```
 
-No treinamento supervisionado dos predicados, `CanStack(x,y)` tambem considera a estabilidade pedida no enunciado: o suporte `y` nao pode ser cone nem triangulo e os objetos devem ter o mesmo tamanho ou centroide horizontal suficientemente alinhado.
+No treinamento supervisionado dos predicados, `CanStack(x,y)` tambem considera a estabilidade pedida no enunciado: o suporte `y` nao pode ser retangulo nem triangulo e os objetos devem ter o mesmo tamanho ou centroide horizontal suficientemente alinhado.
 
 ## 5. Consultas Compostas
 
-Consulta 1: existe algum objeto pequeno abaixo de um cilindro e a esquerda de um quadrado?
+Consulta 1: existe algum objeto pequeno abaixo de uma elipse e a esquerda de um quadrado?
 
 ```text
-exists x: IsSmall(x) and exists y: IsCylinder(y) and Below(x,y)
+exists x: IsSmall(x) and exists y: IsEllipse(y) and Below(x,y)
           and exists z: IsSquare(z) and LeftOf(x,z)
 ```
 
-Consulta 2: existe um cone verde entre dois objetos quaisquer?
+Consulta 2: existe um retangulo verde entre dois objetos quaisquer?
 
 ```text
-exists x,y,z: IsCone(x) and IsGreen(x) and InBetween(x,y,z)
+exists x,y,z: IsRectangle(x) and IsGreen(x) and InBetween(x,y,z)
 ```
 
 Consulta 3: se dois triangulos estao proximos, entao possuem o mesmo tamanho?
@@ -196,7 +196,7 @@ Resumo:
 
 Contagem de classes nas cenas de teste:
 
-| Execucao | Circulos | Quadrados | Cilindros | Cones | Triangulos |
+| Execucao | Circulos | Quadrados | Elipses | Retangulos | Triangulos |
 |---:|---:|---:|---:|---:|---:|
 | 1 | 5 | 5 | 5 | 5 | 5 |
 | 2 | 5 | 5 | 5 | 5 | 5 |
@@ -220,8 +220,8 @@ Satisfatibilidade media das formulas e perguntas:
 | `last_left` | Objeto mais a esquerda | 0.4343 | 0.0070 |
 | `last_right` | Objeto mais a direita | 0.4410 | 0.0112 |
 | `can_stack_rule` | Regra CanStack | 0.9847 | 0.0219 |
-| `query_small_below_cylinder_left_square` | Pergunta composta 1 | 0.0672 | 0.0172 |
-| `query_green_cone_between` | Pergunta composta 2 | 0.1634 | 0.0865 |
+| `query_small_below_ellipse_left_square` | Pergunta composta 1 | 0.0672 | 0.0172 |
+| `query_green_rectangle_between` | Pergunta composta 2 | 0.1634 | 0.0865 |
 | `query_triangles_close_same_size` | Pergunta composta 3 | 0.9612 | 0.0178 |
 | `ltn_api_sat_check` | Auditoria complementar via LTNtorch | 0.9437 | 0.0037 |
 
@@ -240,9 +240,9 @@ Figuras geradas para visualizacao das cenas:
 
 ## 8. Explicacao do Raciocinio das Perguntas
 
-Pergunta composta 1: o modelo procura um objeto `x` pequeno. Depois verifica se existe um objeto `y` que seja cilindro e esteja acima de `x`, isto e, `Below(x,y)`. Por fim, procura um objeto `z` que seja quadrado e esteja a direita de `x`, isto e, `LeftOf(x,z)`. A satisfatibilidade depende de as tres condicoes aparecerem juntas na mesma cena.
+Pergunta composta 1: o modelo procura um objeto `x` pequeno. Depois verifica se existe um objeto `y` que seja elipse e esteja acima de `x`, isto e, `Below(x,y)`. Por fim, procura um objeto `z` que seja quadrado e esteja a direita de `x`, isto e, `LeftOf(x,z)`. A satisfatibilidade depende de as tres condicoes aparecerem juntas na mesma cena.
 
-Pergunta composta 2: o modelo procura um objeto `x` que seja simultaneamente cone e verde. Em seguida, usa `InBetween(x,y,z)` para verificar se esse cone fica entre outros dois objetos no eixo horizontal. Como a cena e aleatoria, a consulta pode ter baixa satisfatibilidade quando nao ha cone verde em posicao intermediaria.
+Pergunta composta 2: o modelo procura um objeto `x` que seja simultaneamente retangulo e verde. Em seguida, usa `InBetween(x,y,z)` para verificar se esse retangulo fica entre outros dois objetos no eixo horizontal. Como a cena e aleatoria, a consulta pode ter baixa satisfatibilidade quando nao ha retangulo verde em posicao intermediaria.
 
 Pergunta composta 3: o modelo avalia todos os pares de objetos. Quando dois objetos sao triangulos e estao proximos segundo `CloseTo(x,y)`, a regra exige que `SameSize(x,y)` tambem seja verdadeiro. Esta e uma implicacao universal; portanto, ela testa consistencia global da cena, nao apenas a existencia de um exemplo.
 
