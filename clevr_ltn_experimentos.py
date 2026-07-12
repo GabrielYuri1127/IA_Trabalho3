@@ -360,6 +360,21 @@ def query_evidence(s: Scene, u: dict[str, torch.Tensor], b: dict[str, torch.Tens
     }
 
 
+def xai_pair_evidence(s: Scene, b: dict[str, torch.Tensor]):
+    leftmost = int(torch.argmin(s.x[:, 0]).item())
+    rightmost = int(torch.argmax(s.x[:, 0]).item())
+    forward = b["left"][leftmost, rightmost]
+    reverse = b["left"][rightmost, leftmost]
+    asymmetry = l_imp(forward, l_not(reverse))
+    return {
+        "xai_leftmost_obj": leftmost,
+        "xai_rightmost_obj": rightmost,
+        "xai_leftmost_rightmost_conf": float(forward.item()),
+        "xai_reverse_conf": float(reverse.item()),
+        "xai_asymmetry_conf": float(asymmetry.item()),
+    }
+
+
 def ltn_api_sat_check(m: Model, s: Scene):
     """Auditoria curta usando objetos reais do LTNtorch, quando instalado."""
     if not HAS_LTN:
@@ -458,6 +473,7 @@ def evaluate(m: Model, s: Scene):
             "satAgg": float(satagg(f.values()).item()),
             **{k: float(v.item()) for k, v in f.items()},
             **query_evidence(s, u, b, bt),
+            **xai_pair_evidence(s, b),
             **relation_mt,
             **all_mt,
             **unary_mt,

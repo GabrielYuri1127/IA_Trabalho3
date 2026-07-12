@@ -302,6 +302,8 @@ Pergunta composta 3: o modelo avalia todos os pares de objetos. Quando dois obje
 
 Para as consultas existenciais, o CSV tambem registra a melhor testemunha. Em q1 e q2, todas as cinco cenas tiveram ground-truth positivo (`q1_gt_exists=1` e `q2_gt_exists=1`) e confianca maxima proxima de 1.0. Isso torna a resposta mais explicavel do que olhar apenas para o `satAgg` agregado, pois a agregacao existencial pode ficar baixa mesmo quando ha uma testemunha forte.
 
+Como auditoria XAI adicional das relacoes espaciais, o CSV registra o par formado pelo objeto mais a esquerda e pelo objeto mais a direita de cada cena. As colunas `xai_leftmost_rightmost_conf`, `xai_reverse_conf` e `xai_asymmetry_conf` mostram, respectivamente, a confianca em `LeftOf(esquerda,direita)`, a confianca na relacao reversa e a satisfacao fuzzy da assimetria nesse par. Essa evidencia ajuda a explicar se o predicado horizontal aprendeu uma direcao coerente em exemplos concretos.
+
 ## 9. Discussao
 
 O uso de formulas logicas permite avaliar nao apenas se os predicados acertam exemplos individuais, mas tambem se o conjunto de predicoes respeita propriedades globais do dominio. Por exemplo, um classificador puramente neural poderia aprender `LeftOf(x,y)` e `LeftOf(y,x)` como verdadeiros ao mesmo tempo em alguns casos. A regra de assimetria penaliza esse comportamento e induz uma estrutura mais coerente.

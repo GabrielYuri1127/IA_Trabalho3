@@ -60,6 +60,7 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 | Transitividade horizontal | Atendido | `left_transitive` |
 | Objeto mais a esquerda | Atendido | `last_left` |
 | Objeto mais a direita | Atendido | `last_right` |
+| Auditoria XAI esquerda/direita | Atendido | colunas `xai_leftmost_obj`, `xai_rightmost_obj`, `xai_*_conf` |
 
 ## Tarefa 3 - Raciocinio vertical
 
@@ -96,6 +97,7 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 | 5 execucoes em datasets aleatorios distintos | Atendido | seeds de teste 42, 43, 44, 45, 46 |
 | `satAgg` de cada pergunta/formula | Atendido | CSV e tabela de satisfatibilidade no relatorio |
 | Interpretabilidade das consultas existenciais | Atendido | colunas `q1_*`, `q2_*` e secao 8 do relatorio |
+| Auditoria interpretavel de relacao espacial | Atendido | colunas `xai_*` e secao 8 do relatorio |
 | Acuracia | Atendido | CSV e relatorio |
 | Precisao | Atendido | CSV e relatorio |
 | Recall | Atendido | CSV e relatorio |

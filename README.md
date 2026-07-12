@@ -62,6 +62,7 @@ Isso gera:
 - `resultados_clevr_ltn.csv`: metricas por cena de teste.
 - `figuras/`: imagem da cena de treino e imagens das 5 cenas de teste.
 - colunas de interpretabilidade das consultas: resposta ground-truth, melhor testemunha e confianca para q1/q2.
+- colunas `xai_*` com auditoria do par mais a esquerda/mais a direita, incluindo confianca direta, reversa e assimetria.
 - colunas `unary_*`, `relation_*` e `all_*`, separando metricas de atributos, relacoes e conjunto completo.
 
 ## Resultados e prints

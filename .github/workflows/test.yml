@@ -42,6 +42,8 @@ jobs:
               assert key in row, key
           for key in ['can_stack_stability_rule', 'unary_accuracy', 'relation_accuracy', 'all_accuracy']:
               assert key in row, key
+          for key in ['xai_leftmost_obj', 'xai_rightmost_obj', 'xai_leftmost_rightmost_conf', 'xai_reverse_conf', 'xai_asymmetry_conf']:
+              assert key in row, key
           PY
           ls -la
           ls -la figuras_smoke
