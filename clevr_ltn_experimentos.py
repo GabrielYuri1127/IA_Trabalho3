@@ -276,6 +276,59 @@ def formulas(m: Model, s: Scene):
     }
 
 
+def query_evidence(s: Scene, u: dict[str, torch.Tensor], b: dict[str, torch.Tensor], between: torch.Tensor):
+    n = s.n
+
+    below_gt = gt_below(s).bool()
+    left_gt = gt_left(s).bool()
+    between_gt = gt_between(s).bool()
+    close_gt = gt_close(s).bool()
+    same_size_gt = gt_same_size(s).bool()
+
+    is_small_gt = s.size == 0
+    is_green_gt = s.color == COLORS.index("green")
+    is_square_gt = s.shape == SHAPES.index("square")
+    is_ellipse_gt = s.shape == SHAPES.index("ellipse")
+    is_rectangle_gt = s.shape == SHAPES.index("rectangle")
+    is_triangle_gt = s.shape == SHAPES.index("triangle")
+
+    q1_gt = (
+        is_small_gt[:, None, None]
+        & is_ellipse_gt[None, :, None]
+        & below_gt[:, :, None]
+        & is_square_gt[None, None, :]
+        & left_gt[:, None, :]
+    )
+    q1_score = l_and(
+        u["is_small"][:, None, None],
+        u["is_ellipse"][None, :, None],
+        b["below"][:, :, None],
+        u["is_square"][None, None, :],
+        b["left"][:, None, :],
+    )
+    q1_flat = int(torch.argmax(q1_score).item())
+    q1_x = q1_flat // (n * n)
+
+    q2_gt = is_rectangle_gt[:, None, None] & is_green_gt[:, None, None] & between_gt
+    q2_score = l_and(u["is_rectangle"][:, None, None], u["is_green"][:, None, None], between)
+    q2_flat = int(torch.argmax(q2_score).item())
+    q2_x = q2_flat // (n * n)
+
+    q3_pairs = is_triangle_gt[:, None] & is_triangle_gt[None, :] & close_gt
+    q3_violations = q3_pairs & ~same_size_gt
+
+    return {
+        "q1_gt_exists": int(q1_gt.any().item()),
+        "q1_best_witness_conf": float(q1_score.max().item()),
+        "q1_best_witness_obj": int(q1_x),
+        "q2_gt_exists": int(q2_gt.any().item()),
+        "q2_best_witness_conf": float(q2_score.max().item()),
+        "q2_best_witness_obj": int(q2_x),
+        "q3_triangle_close_pairs": int(q3_pairs.sum().item()),
+        "q3_triangle_size_violations": int(q3_violations.sum().item()),
+    }
+
+
 def ltn_api_sat_check(m: Model, s: Scene):
     """Auditoria curta usando objetos reais do LTNtorch, quando instalado."""
     if not HAS_LTN:
@@ -342,11 +395,11 @@ def metrics(y_true, y_score):
 
 def evaluate(m: Model, s: Scene):
     with torch.no_grad():
-        f, b, bt = formulas(m, s), m.binary(s), m.ternary(s)
+        f, u, b, bt = formulas(m, s), m.unary(s.x), m.binary(s), m.ternary(s)
         targets = {"left": gt_left(s), "right": gt_right(s), "below": gt_below(s), "above": gt_above(s), "close": gt_close(s), "same_size": gt_same_size(s), "can_stack": gt_can_stack(s), "between": gt_between(s)}
         scores = {**b, "between": bt}
         mt = metrics(torch.cat([targets[k].reshape(-1) for k in targets]), torch.cat([scores[k].reshape(-1) for k in targets]))
-        return {"satAgg": float(satagg(f.values()).item()), **{k: float(v.item()) for k, v in f.items()}, **mt, **ltn_api_sat_check(m, s)}
+        return {"satAgg": float(satagg(f.values()).item()), **{k: float(v.item()) for k, v in f.items()}, **query_evidence(s, u, b, bt), **mt, **ltn_api_sat_check(m, s)}
 
 
 def plot_scene(s: Scene, out_dir: Path):

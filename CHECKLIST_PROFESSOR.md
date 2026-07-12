@@ -91,6 +91,7 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 | Valor de satisfacao das formulas | Atendido | `resultados_clevr_ltn.csv` e secao 7 do relatorio |
 | 5 execucoes em datasets aleatorios distintos | Atendido | seeds de teste 42, 43, 44, 45, 46 |
 | `satAgg` de cada pergunta/formula | Atendido | CSV e tabela de satisfatibilidade no relatorio |
+| Interpretabilidade das consultas existenciais | Atendido | colunas `q1_*`, `q2_*` e secao 8 do relatorio |
 | Acuracia | Atendido | CSV e relatorio |
 | Precisao | Atendido | CSV e relatorio |
 | Recall | Atendido | CSV e relatorio |
