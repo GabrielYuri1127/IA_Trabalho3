@@ -1,43 +1,65 @@
-# Trabalho Final de IA: Raciocínio Espacial Neuro-Simbólico com LTNtorch
+# Trabalho Final de Inteligência Artificial
 
-Este repositório contém a implementação do trabalho final da disciplina **Inteligência Artificial**, cujo objetivo é construir e avaliar um modelo neuro-simbólico para **raciocínio espacial** em cenas 2D inspiradas no dataset CLEVR.
+## Raciocínio Espacial Neuro-Simbólico com LTNtorch
 
 **Equipe:** Gabriel Yuri, Guilherme Gurgel, Isabela Monteiro e Marcele Azevedo  
 **Disciplina:** Inteligência Artificial  
 **Professor:** Edjard Mota  
-**Tema:** Logic Tensor Networks (LTN), CLEVR simplificado e raciocínio espacial
+
+Este repositório reúne o código, o relatório, o notebook, os resultados e as figuras do trabalho final da disciplina. O tema desenvolvido foi o uso de **Logic Tensor Networks (LTN)** para representar e avaliar regras de raciocínio espacial em uma versão simplificada do dataset CLEVR.
 
 ---
 
-## 1. Visão Geral
+## 1. Objetivo do Trabalho
 
-A proposta utiliza **Logic Tensor Networks (LTN)** para combinar redes neurais com regras lógicas diferenciáveis. O foco não é apenas classificar objetos, mas verificar se regras de **reasoning** podem ser aprendidas a partir de poucos dados e generalizadas para novas cenas.
+O objetivo do trabalho é construir um experimento neuro-simbólico capaz de combinar:
 
-No experimento, o modelo aprende predicados neurais para atributos e relações espaciais, enquanto axiomas lógicos orientam o treinamento por meio da satisfatibilidade fuzzy (`satAgg`). Assim, propriedades como assimetria, transitividade e inversão de relações passam a influenciar a função de perda.
+- redes neurais para aprender predicados sobre objetos;
+- regras lógicas para representar conhecimento espacial;
+- lógica fuzzy diferenciável para permitir treinamento por retropropagação;
+- métricas de avaliação para verificar se as regras aprendidas generalizam para novas cenas.
+
+Diferente de uma tarefa simples de classificação, o foco do trabalho é avaliar **raciocínio**. Por isso, o modelo é treinado com uma única cena e depois testado em cenas aleatórias diferentes.
 
 ---
 
-## 2. Dataset CLEVR Simplificado
+## 2. IA Neuro-Simbólica e LTN
 
-Como o processamento de imagens reais seria mais pesado, foi usada uma versão vetorial simplificada do CLEVR. Cada objeto é representado por um vetor de 11 atributos:
+A Inteligência Artificial Neuro-Simbólica (NeSy) combina aprendizado neural com representações simbólicas. Neste trabalho, essa ideia é aplicada com **Logic Tensor Networks (LTN)**.
 
-| Posições | Significado |
+Na LTN, predicados como `LeftOf(x, y)`, `Below(x, y)` ou `IsTriangle(x)` retornam valores fuzzy no intervalo `[0, 1]`. As fórmulas lógicas também recebem valores de satisfatibilidade, agregados por `satAgg`.
+
+Durante o treinamento, a perda combina fatos supervisionados e satisfatibilidade lógica:
+
+```text
+Loss_total = Loss_fatos + lambda * (1 - satAgg)
+```
+
+Quando a biblioteca `LTNtorch` está disponível, o código usa objetos da própria biblioteca (`ltn.Variable`, `ltn.Predicate`, `ltn.Connective`, `ltn.Quantifier` e `SatAgg`) como parte da perda de treinamento.
+
+---
+
+## 3. Dataset CLEVR Simplificado
+
+O trabalho usa uma versão vetorial simplificada do CLEVR. Em vez de usar imagens reais, cada objeto é representado por um vetor com 11 atributos:
+
+| Posições | Descrição |
 |---|---|
 | `[0, 1]` | Coordenadas normalizadas `(x, y)` |
 | `[2, 3, 4]` | Cor one-hot: vermelho, verde e azul |
 | `[5, 6, 7, 8, 9]` | Forma one-hot: círculo, quadrado, elipse, retângulo e triângulo |
 | `[10]` | Tamanho: pequeno `0.0` ou grande `1.0` |
 
-### 2.1 Adaptação das formas
+### 3.1 Alteração das formas
 
-Por se tratar de um cenário 2D, as formas originalmente associadas a objetos 3D foram adaptadas:
+Como o experimento foi desenvolvido em um espaço 2D, as formas foram adaptadas:
 
 ```text
 cilindro -> elipse
 cone     -> retângulo
 ```
 
-As cinco classes usadas no trabalho são:
+As classes usadas foram:
 
 | Classe | Quantidade por cena |
 |---|---:|
@@ -47,34 +69,36 @@ As cinco classes usadas no trabalho são:
 | Retângulo | 5 |
 | Triângulo | 5 |
 
-Total por cena: **25 objetos**.
+Cada cena possui, portanto, **25 objetos**.
 
-### 2.2 Geração das cenas
+### 3.2 Protocolo usado
 
-O professor esclareceu que não são cinco objetos no total, mas sim cinco classes, com cinco objetos de cada classe. Por isso, o protocolo experimental usa:
+Conforme a orientação do professor:
 
-- **1 cena de treino**, com 25 objetos balanceados;
-- **5 cenas de teste**, aleatórias e distintas;
-- **5 objetos de cada classe** em todas as cenas;
-- tratamento de overlapping por distância entre centroides e por caixas geométricas visuais.
+- não são 5 objetos no total;
+- são 5 classes de objetos;
+- cada classe aparece 5 vezes;
+- o treino usa uma única cena;
+- o teste usa 5 cenas aleatórias distintas;
+- o objetivo é avaliar generalização de regras de raciocínio.
+
+As cenas também usam tratamento de sobreposição visual por distância entre centroides e por caixas geométricas dos objetos.
 
 ---
 
-## 3. Predicados e Regras Implementadas
+## 4. Predicados Implementados
 
-O modelo implementa predicados unários, binários e ternários para representar atributos e relações espaciais.
-
-### 3.1 Predicados de atributos
+### 4.1 Predicados de atributos
 
 - `IsCircle(x)`
 - `IsSquare(x)`
 - `IsEllipse(x)`
 - `IsRectangle(x)`
 - `IsTriangle(x)`
-- `IsSmall(x)` / `IsBig(x)`
-- `IsRed(x)` / `IsGreen(x)` / `IsBlue(x)`
+- `IsSmall(x)` e `IsBig(x)`
+- `IsRed(x)`, `IsGreen(x)` e `IsBlue(x)`
 
-### 3.2 Predicados espaciais
+### 4.2 Predicados espaciais
 
 - `LeftOf(x, y)`
 - `RightOf(x, y)`
@@ -84,60 +108,55 @@ O modelo implementa predicados unários, binários e ternários para representar
 - `InBetween(x, y, z)`
 - `CanStack(x, y)`
 
-### 3.3 Axiomas principais
+---
 
-As regras lógicas avaliadas no experimento incluem:
+## 5. Regras Lógicas Avaliadas
 
-- unicidade e cobertura de formas;
-- irreflexividade, assimetria e transitividade de `LeftOf`;
+O experimento avalia regras como:
+
+- unicidade de forma;
+- cobertura das formas;
+- irreflexividade de `LeftOf`;
+- assimetria de `LeftOf`;
 - relação inversa entre `LeftOf` e `RightOf`;
+- transitividade horizontal;
 - relação inversa entre `Below` e `Above`;
 - transitividade vertical;
-- regra ternária para `InBetween`;
-- definição completa de `CanStack`;
-- consultas compostas para avaliar raciocínio relacional.
+- regra de objeto entre dois outros objetos (`InBetween`);
+- definição completa de `CanStack`.
 
-A definição de `CanStack(x, y)` considera três condições: o objeto `x` deve estar acima de `y`, o suporte `y` não pode ser retângulo nem triângulo, e os objetos devem ter mesmo tamanho ou alinhamento horizontal suficiente.
+No trabalho, `CanStack(x, y)` considera que:
 
----
-
-## 4. Uso do LTNtorch no Treinamento
-
-O treinamento combina erro supervisionado dos predicados com perda lógica baseada em satisfatibilidade:
-
-```text
-Loss_total = Loss_fatos + lambda * (1 - satAgg)
-```
-
-Quando `LTNtorch` está instalado, a função `ltn_training_sat` constrói fórmulas diferenciáveis usando objetos reais da biblioteca:
-
-- `ltn.Variable`
-- `ltn.Predicate`
-- `ltn.Connective`
-- `ltn.Quantifier`
-- `SatAgg`
-
-Essas fórmulas participam diretamente da perda de treinamento. As fórmulas fuzzy locais permanecem como complemento e fallback para manter o experimento executável em ambientes diferentes.
+- `x` deve estar acima de `y`;
+- `y` não pode ser retângulo nem triângulo;
+- os objetos devem ter o mesmo tamanho ou alinhamento horizontal suficiente.
 
 ---
 
-## 5. Consultas Compostas
+## 6. Consultas Compostas
 
-Além dos axiomas estruturais, o trabalho avalia perguntas de raciocínio espacial:
+Também foram avaliadas três consultas de raciocínio:
 
-| Consulta | Ideia avaliada |
+| Consulta | Pergunta |
 |---|---|
 | q1 | Existe objeto pequeno abaixo de uma elipse e à esquerda de um quadrado? |
 | q2 | Existe retângulo verde entre dois objetos? |
 | q3 | Se dois triângulos estão próximos, então possuem o mesmo tamanho? |
 
-Essas consultas exigem combinação de atributos, relações espaciais e implicações lógicas.
+Essas consultas combinam atributos, relações espaciais e implicações lógicas.
 
 ---
 
-## 6. Resultados
+## 7. Resultados Obtidos
 
-O experimento completo foi executado com uma cena de treino (`train_seed=2025`) e cinco cenas de teste (`seed=42` a `seed=46`).
+O experimento completo foi executado com:
+
+- cena de treino: `train_seed=2025`;
+- cenas de teste: `seed=42`, `43`, `44`, `45` e `46`;
+- 25 objetos por cena;
+- 5 objetos de cada classe.
+
+Resumo das métricas:
 
 | Métrica | Média | Desvio padrão |
 |---|---:|---:|
@@ -151,61 +170,64 @@ O experimento completo foi executado com uma cena de treino (`train_seed=2025`) 
 | Accuracy geral | 0.8089 | 0.0109 |
 | F1 geral | 0.6832 | 0.0137 |
 
-O CSV final também registra:
+O arquivo `resultados_clevr_ltn.csv` contém os resultados completos, incluindo:
 
-- `min_bbox_gap` e `bbox_overlap_ok`, para auditar o tratamento geométrico de overlapping;
-- `can_stack_above_rule`, `can_stack_rule` e `can_stack_stability_rule`, para auditar `CanStack`;
-- `q1_*`, `q2_*` e `q3_*`, para evidências interpretáveis das consultas;
-- `xai_*`, para análise do par mais à esquerda e mais à direita de cada cena.
+- satisfatibilidade de cada fórmula;
+- métricas por cena de teste;
+- auditoria de overlapping (`min_bbox_gap` e `bbox_overlap_ok`);
+- evidências interpretáveis das consultas;
+- auditoria XAI do par mais à esquerda e mais à direita.
 
 ---
 
-## 7. Estrutura do Repositório
+## 8. Arquivos do Repositório
 
-| Arquivo/Pasta | Descrição |
+| Arquivo/Pasta | Conteúdo |
 |---|---|
-| `clevr_ltn_experimentos.py` | Script principal do experimento |
-| `trabalho_ltn_clevr.ipynb` | Notebook executável |
-| `RELATORIO_TRABALHO_LTN.md` | Relatório completo em Markdown |
-| `CHECKLIST_PROFESSOR.md` | Checklist de atendimento ao enunciado |
+| `clevr_ltn_experimentos.py` | Implementação principal do experimento |
+| `trabalho_ltn_clevr.ipynb` | Notebook para execução e visualização |
+| `RELATORIO_TRABALHO_LTN.md` | Relatório completo do trabalho |
+| `CHECKLIST_PROFESSOR.md` | Checklist dos requisitos do enunciado |
 | `resultados_clevr_ltn.csv` | Resultados finais do experimento |
-| `figuras/` | Cenas geradas para treino e teste |
+| `figuras/` | Cenas de treino e teste geradas |
 | `.github/workflows/test.yml` | Teste rápido no GitHub Actions |
 | `.github/workflows/full-experiment.yml` | Execução completa no GitHub Actions |
 
 ---
 
-## 8. Como Executar
+## 9. Como Reproduzir
 
-### 8.1 Instalar dependências
+### 9.1 Instalar dependências
 
 ```bash
 pip install torch numpy matplotlib LTNtorch
 ```
 
-Se `LTNtorch` não instalar com esse nome no ambiente usado, tente:
+Caso `LTNtorch` não instale com esse nome:
 
 ```bash
 pip install ltn
 ```
 
-### 8.2 Rodar pelo notebook
+### 9.2 Executar pelo notebook
 
-Abra e execute as células do arquivo:
+Abra o notebook:
 
 [trabalho_ltn_clevr.ipynb](trabalho_ltn_clevr.ipynb)
 
-### 8.3 Rodar pelo terminal
+Execute as células em ordem.
+
+### 9.3 Executar pelo terminal
 
 ```bash
 python clevr_ltn_experimentos.py --runs 5 --epochs 350 --train-seed 2025 --seed 42 --min-distance 0.08 --overlap-margin 0.012 --out resultados_clevr_ltn.csv --plot-dir figuras
 ```
 
-Esse comando gera o CSV de resultados e as figuras das cenas.
+Esse comando gera o CSV de resultados e as imagens das cenas.
 
 ---
 
-## 9. Figuras
+## 10. Figuras Geradas
 
 - [Cena de treino - seed 2025](figuras/scene_seed_2025.png)
 - [Cena de teste - seed 42](figuras/scene_seed_42.png)
@@ -213,20 +235,6 @@ Esse comando gera o CSV de resultados e as figuras das cenas.
 - [Cena de teste - seed 44](figuras/scene_seed_44.png)
 - [Cena de teste - seed 45](figuras/scene_seed_45.png)
 - [Cena de teste - seed 46](figuras/scene_seed_46.png)
-
----
-
-## 10. Materiais de Entrega
-
-- [Relatório completo](RELATORIO_TRABALHO_LTN.md)
-- [Checklist do enunciado](CHECKLIST_PROFESSOR.md)
-- [CSV de resultados](resultados_clevr_ltn.csv)
-- [Notebook executável](trabalho_ltn_clevr.ipynb)
-
-Testes no GitHub Actions:
-
-- [Teste rápido do experimento](https://github.com/GabrielYuri1127/IA_Trabalho3/actions/workflows/test.yml)
-- [Experimento completo LTN](https://github.com/GabrielYuri1127/IA_Trabalho3/actions/workflows/full-experiment.yml)
 
 ---
 
