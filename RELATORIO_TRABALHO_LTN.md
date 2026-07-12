@@ -23,7 +23,7 @@ Na LTN, a diferenca e que a saida usada na perda nao e apenas uma classe previst
 Loss_total = Loss_fatos + lambda * (1 - satAgg)
 ```
 
-No codigo, isso aparece no treinamento como `loss = facts + axiom_weight * (1 - sat)`, seguido de `loss.backward()` e `opt.step()`. Como os predicados neurais, os conectivos fuzzy e o agregador `satAgg` sao diferenciaveis, o PyTorch consegue propagar o erro das formulas ate os pesos das redes dos predicados.
+No codigo, isso aparece no treinamento como `loss = facts + axiom_weight * (1 - sat)`, seguido de `loss.backward()` e `opt.step()`. Quando `LTNtorch` esta instalado, a funcao `ltn_training_sat` constroi um termo de `SatAgg` com `ltn.Variable`, `ltn.Predicate`, `ltn.Connective` e `ltn.Quantifier`, e esse termo tambem entra na perda de treinamento. As formulas fuzzy locais permanecem como complemento e fallback. Como os predicados neurais, os conectivos fuzzy e o agregador `satAgg` sao diferenciaveis, o PyTorch consegue propagar o erro das formulas ate os pesos das redes dos predicados.
 
 Neste trabalho, o grounding usado foi:
 
@@ -61,7 +61,7 @@ Conforme a orientacao do professor, cada cena possui 5 classes de objetos, com 5
 
 O experimento treina o reasoning em uma unica cena balanceada (`train_seed=2025`) e testa a generalizacao em 5 cenas aleatorias distintas (`seed=42` a `seed=46`).
 
-Para evitar sobreposicao visual forte entre objetos, a geracao das posicoes usa rejeicao amostral com distancia minima de `0.08` entre centroides. O CSV registra `min_pair_distance` e `overlap_ok` para auditar esse tratamento.
+Para evitar sobreposicao visual entre objetos, a geracao das posicoes usa rejeicao amostral com duas condicoes: distancia minima de `0.08` entre centroides e teste geometrico de caixas visuais dos objetos desenhados. O CSV registra `min_pair_distance`, `overlap_ok`, `min_bbox_gap` e `bbox_overlap_ok` para auditar esse tratamento.
 
 ## 3. Predicados Implementados
 
@@ -156,10 +156,12 @@ InBetween(x,y,z) <-> (LeftOf(y,x) and RightOf(z,x)) or (LeftOf(z,x) and RightOf(
 12. Regra de empilhamento:
 
 ```text
+CanStack(x,y) -> Above(x,y)
 CanStack(x,y) -> not(IsRectangle(y) or IsTriangle(y))
+CanStack(x,y) -> SameSize(x,y) or HorizAligned(x,y)
 ```
 
-No treinamento supervisionado dos predicados, `CanStack(x,y)` tambem considera a estabilidade pedida no enunciado: o suporte `y` nao pode ser retangulo nem triangulo e os objetos devem ter o mesmo tamanho ou centroide horizontal suficientemente alinhado.
+No treinamento supervisionado dos predicados, `CanStack(x,y)` considera a definicao completa usada no dominio: o objeto `x` deve estar acima do suporte `y`; o suporte `y` nao pode ser retangulo nem triangulo; e os objetos devem ter o mesmo tamanho ou centroide horizontal suficientemente alinhado.
 
 ## 5. Consultas Compostas
 
@@ -214,6 +216,7 @@ Comando usado:
 ```bash
 python clevr_ltn_experimentos.py --runs 5 --epochs 350 \
   --train-seed 2025 --seed 42 --min-distance 0.08 \
+  --overlap-margin 0.012 \
   --out resultados_clevr_ltn.csv --plot-dir figuras
 ```
 

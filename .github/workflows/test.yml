@@ -26,7 +26,7 @@ jobs:
         run: python -m py_compile clevr_ltn_experimentos.py
 
       - name: Smoke test
-        run: python clevr_ltn_experimentos.py --runs 1 --epochs 2 --n-objects 25 --train-seed 2025 --seed 42 --min-distance 0.08 --out smoke_resultados.csv --plot-dir figuras_smoke
+        run: python clevr_ltn_experimentos.py --runs 1 --epochs 2 --n-objects 25 --train-seed 2025 --seed 42 --min-distance 0.08 --overlap-margin 0.012 --out smoke_resultados.csv --plot-dir figuras_smoke
 
       - name: Check generated files
         run: |
@@ -38,9 +38,10 @@ jobs:
           for key in ['n_circle', 'n_square', 'n_ellipse', 'n_rectangle', 'n_triangle']:
               assert int(row[key]) == 5, (key, row[key])
           assert int(row['overlap_ok']) == 1, row['min_pair_distance']
+          assert int(row['bbox_overlap_ok']) == 1, row['min_bbox_gap']
           for key in ['q1_gt_exists', 'q1_best_witness_conf', 'q2_gt_exists', 'q2_best_witness_conf', 'q3_triangle_close_pairs']:
               assert key in row, key
-          for key in ['can_stack_stability_rule', 'unary_accuracy', 'relation_accuracy', 'all_accuracy']:
+          for key in ['can_stack_above_rule', 'can_stack_stability_rule', 'unary_accuracy', 'relation_accuracy', 'all_accuracy']:
               assert key in row, key
           for key in ['xai_leftmost_obj', 'xai_rightmost_obj', 'xai_leftmost_rightmost_conf', 'xai_reverse_conf', 'xai_asymmetry_conf']:
               assert key in row, key

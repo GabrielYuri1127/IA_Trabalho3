@@ -2,7 +2,7 @@
 
 Rode com:
     pip install torch numpy matplotlib LTNtorch
-    python clevr_ltn_experimentos.py --runs 5 --epochs 350 --min-distance 0.08 --out resultados_clevr_ltn.csv --plot-dir figuras
+    python clevr_ltn_experimentos.py --runs 5 --epochs 350 --min-distance 0.08 --overlap-margin 0.012 --out resultados_clevr_ltn.csv --plot-dir figuras
 
 O codigo treina em uma cena CLEVR simplificada balanceada e testa em 5 cenas
 aleatorias distintas. Cada cena padrao tem 25 objetos: 5 classes de formas
@@ -40,6 +40,7 @@ COLORS = ["red", "green", "blue"]
 SHAPES = ["circle", "square", "ellipse", "rectangle", "triangle"]
 EPS = 1e-7
 DEFAULT_MIN_DISTANCE = 0.08
+DEFAULT_OVERLAP_MARGIN = 0.012
 
 
 @dataclass
@@ -77,29 +78,76 @@ def balanced_shape_indices(rng: np.random.Generator, n: int) -> np.ndarray:
     return shape.astype(np.int64)
 
 
-def non_overlapping_positions(rng: np.random.Generator, n: int, min_distance: float = DEFAULT_MIN_DISTANCE) -> np.ndarray:
+def visual_half_extents(shape_idx: int, size_idx: int) -> tuple[float, float]:
+    """Half-width/half-height used by the generated 2D plot for overlap checks."""
+    scale = 0.055 + 0.025 * int(size_idx)
+    shape = SHAPES[int(shape_idx)]
+    if shape == "circle":
+        r = scale * 0.45
+        return r, r
+    if shape == "square":
+        h = scale * 0.85 / 2
+        return h, h
+    if shape in {"ellipse", "rectangle"}:
+        return scale * 1.35 / 2, scale * 0.75 / 2
+    r = scale * 0.55
+    return r, r
+
+
+def bbox_gap(pos_a: torch.Tensor, ext_a: tuple[float, float], pos_b: torch.Tensor, ext_b: tuple[float, float]) -> float:
+    gap_x = abs(float(pos_a[0] - pos_b[0])) - (ext_a[0] + ext_b[0])
+    gap_y = abs(float(pos_a[1] - pos_b[1])) - (ext_a[1] + ext_b[1])
+    return max(gap_x, gap_y)
+
+
+def non_overlapping_positions(
+    rng: np.random.Generator,
+    shape: np.ndarray,
+    size: np.ndarray,
+    min_distance: float = DEFAULT_MIN_DISTANCE,
+    overlap_margin: float = DEFAULT_OVERLAP_MARGIN,
+) -> np.ndarray:
+    n = len(shape)
+    extents = [visual_half_extents(int(shape[i]), int(size[i])) for i in range(n)]
     positions: list[np.ndarray] = []
-    for _ in range(n):
+    for i in range(n):
+        hx, hy = extents[i]
         for _attempt in range(5000):
-            candidate = rng.uniform(0.03, 0.97, size=2).astype(np.float32)
+            candidate = np.array([
+                rng.uniform(hx + overlap_margin, 1 - hx - overlap_margin),
+                rng.uniform(hy + overlap_margin, 1 - hy - overlap_margin),
+            ], dtype=np.float32)
             if not positions:
                 positions.append(candidate)
                 break
             dist = np.linalg.norm(np.stack(positions) - candidate, axis=1)
-            if float(dist.min()) >= min_distance:
+            center_ok = float(dist.min()) >= min_distance
+            bbox_ok = all(
+                bbox_gap(torch.tensor(candidate), extents[i], torch.tensor(prev), extents[j]) >= overlap_margin
+                for j, prev in enumerate(positions)
+            )
+            if center_ok and bbox_ok:
                 positions.append(candidate)
                 break
         else:
-            raise RuntimeError(f"Nao foi possivel gerar cena sem overlapping com min_distance={min_distance}")
+            raise RuntimeError(
+                f"Nao foi possivel gerar cena sem overlapping com min_distance={min_distance} "
+                f"e overlap_margin={overlap_margin}"
+            )
     return np.stack(positions).astype(np.float32)
 
 
-def generate_scene(seed: int, n: int = 25, min_distance: float = DEFAULT_MIN_DISTANCE) -> Scene:
+def generate_scene(
+    seed: int,
+    n: int = 25,
+    min_distance: float = DEFAULT_MIN_DISTANCE,
+    overlap_margin: float = DEFAULT_OVERLAP_MARGIN,
+) -> Scene:
     rng = np.random.default_rng(seed)
-    pos = non_overlapping_positions(rng, n, min_distance)
     color = rng.integers(0, 3, size=n)
     shape = balanced_shape_indices(rng, n)
     size = rng.integers(0, 2, size=n)
+    pos = non_overlapping_positions(rng, shape, size, min_distance, overlap_margin)
     x = np.concatenate([pos, one_hot(color, 3), one_hot(shape, 5), size[:, None]], axis=1)
     return Scene(torch.tensor(x).float(), torch.tensor(color), torch.tensor(shape), torch.tensor(size), seed)
 
@@ -112,6 +160,15 @@ def min_pair_distance(s: Scene) -> float:
     dist = torch.cdist(s.x[:, :2], s.x[:, :2])
     dist.fill_diagonal_(float("inf"))
     return float(dist.min().item())
+
+
+def min_bbox_gap(s: Scene) -> float:
+    gaps = []
+    extents = [visual_half_extents(int(s.shape[i]), int(s.size[i])) for i in range(s.n)]
+    for i in range(s.n):
+        for j in range(i + 1, s.n):
+            gaps.append(bbox_gap(s.x[i, :2], extents[i], s.x[j, :2], extents[j]))
+    return float(min(gaps)) if gaps else float("inf")
 
 
 def pair_inputs(x: torch.Tensor):
@@ -164,9 +221,10 @@ def gt_same_size(s: Scene):
 def gt_can_stack(s: Scene):
     support_shape = s.shape[None, :]
     support_ok = ~((support_shape == SHAPES.index("rectangle")) | (support_shape == SHAPES.index("triangle")))
+    above = gt_above(s).bool()
     same_size = s.size[:, None] == s.size[None, :]
     aligned = torch.abs(s.x[:, None, 0] - s.x[None, :, 0]) < 0.15
-    return (support_ok & (same_size | aligned)).float()
+    return (above & support_ok & (same_size | aligned)).float()
 
 
 def gt_horiz_aligned(s: Scene):
@@ -299,6 +357,7 @@ def formulas(m: Model, s: Scene):
         "between_rule": forall(l_eq(between, between_logic)),
         "last_left": exists(torch.stack([forall(row) for row in left[not_eye].reshape(n, n - 1)])),
         "last_right": exists(torch.stack([forall(row) for row in right[not_eye].reshape(n, n - 1)])),
+        "can_stack_above_rule": forall(l_imp(can_stack, above)),
         "can_stack_rule": forall(l_imp(can_stack, l_not(l_or(u["is_rectangle"][None, :], u["is_triangle"][None, :])))),
         "can_stack_stability_rule": forall(l_imp(can_stack, l_or(same_size, horiz_aligned))),
         "query_small_below_ellipse_left_square": exists(l_and(u["is_small"][:, None, None], u["is_ellipse"][None, :, None], below[:, :, None], u["is_square"][None, None, :], left[:, None, :])),
@@ -415,13 +474,74 @@ def ltn_api_sat_check(m: Model, s: Scene):
         return {}
 
 
+def ltn_value(obj):
+    return obj if torch.is_tensor(obj) else obj.value
+
+
+def ltn_training_sat(m: Model, s: Scene):
+    """Termo diferenciavel de satisfatibilidade usando objetos do LTNtorch."""
+    if not HAS_LTN:
+        return None
+    try:
+        x = ltn.Variable("x_train", s.x)
+        y = ltn.Variable("y_train", s.x)
+        shape_preds = [ltn.Predicate(m.shape[name]) for name in SHAPES]
+        left = ltn.Predicate(m.rel["left"])
+        right = ltn.Predicate(m.rel["right"])
+        below = ltn.Predicate(m.rel["below"])
+        above = ltn.Predicate(m.rel["above"])
+        can_stack = ltn.Predicate(m.rel["can_stack"])
+        is_rectangle = ltn.Predicate(m.shape["rectangle"])
+        is_triangle = ltn.Predicate(m.shape["triangle"])
+
+        Not = ltn.Connective(ltn.fuzzy_ops.NotStandard())
+        And = ltn.Connective(ltn.fuzzy_ops.AndProd())
+        Or = ltn.Connective(ltn.fuzzy_ops.OrProbSum())
+        Implies = ltn.Connective(ltn.fuzzy_ops.ImpliesReichenbach())
+        Forall = ltn.Quantifier(ltn.fuzzy_ops.AggregPMeanError(p=2), quantifier="f")
+        SatAgg = ltn.fuzzy_ops.SatAgg()
+
+        def or_many(values):
+            out = values[0]
+            for value in values[1:]:
+                out = Or(out, value)
+            return out
+
+        def equiv(a, b):
+            return And(Implies(a, b), Implies(b, a))
+
+        shape_axioms = [
+            Forall(x, Not(And(shape_preds[i](x), shape_preds[j](x))))
+            for i in range(len(shape_preds))
+            for j in range(i + 1, len(shape_preds))
+        ]
+        axioms = [
+            *shape_axioms,
+            Forall(x, or_many([pred(x) for pred in shape_preds])),
+            Forall([x, y], Implies(left(x, y), Not(left(y, x)))),
+            Forall([x, y], equiv(left(x, y), right(y, x))),
+            Forall([x, y], equiv(below(x, y), above(y, x))),
+            Forall([x, y], Implies(can_stack(x, y), above(x, y))),
+            Forall([x, y], Implies(can_stack(x, y), Not(Or(is_rectangle(y), is_triangle(y))))),
+        ]
+        return ltn_value(SatAgg(*axioms)).clamp(EPS, 1)
+    except Exception:
+        return None
+
+
 def train(s: Scene, epochs: int, lr: float, axiom_weight: float):
     m = Model()
     opt = torch.optim.Adam(m.parameters(), lr=lr)
+    use_ltn_training = HAS_LTN
     for e in range(epochs):
         opt.zero_grad()
         facts = supervised_loss(m, s)
-        sat = satagg(formulas(m, s).values())
+        custom_sat = satagg(formulas(m, s).values())
+        ltn_sat = ltn_training_sat(m, s) if use_ltn_training else None
+        if ltn_sat is None and use_ltn_training:
+            print("Aviso: termo LTNtorch de treino indisponivel; usando formulas fuzzy locais.")
+            use_ltn_training = False
+        sat = satagg([custom_sat, ltn_sat]) if ltn_sat is not None else custom_sat
         loss = facts + axiom_weight * (1 - sat)
         loss.backward(); opt.step()
         if (e + 1) % 100 == 0: print(f"epoch={e+1:04d} loss={loss.item():.4f} satAgg={sat.item():.4f}")
@@ -524,7 +644,7 @@ def run(args):
     rows = []
     print(f"\n=== Treinamento unico | train_seed={args.train_seed} ===")
     seed_all(args.train_seed)
-    train_scene = generate_scene(args.train_seed, args.n_objects, args.min_distance)
+    train_scene = generate_scene(args.train_seed, args.n_objects, args.min_distance, args.overlap_margin)
     if args.plot_dir:
         plot_scene(train_scene, Path(args.plot_dir))
     model = train(train_scene, args.epochs, args.lr, args.axiom_weight)
@@ -533,7 +653,7 @@ def run(args):
         seed = args.seed + i
         print(f"\n=== Teste {i+1}/{args.runs} | train_seed={args.train_seed} | test_seed={seed} ===")
         seed_all(seed)
-        s = generate_scene(seed, args.n_objects, args.min_distance)
+        s = generate_scene(seed, args.n_objects, args.min_distance, args.overlap_margin)
         if args.plot_dir:
             plot_scene(s, Path(args.plot_dir))
         row = {
@@ -542,7 +662,9 @@ def run(args):
             "seed": seed,
             **shape_counts(s),
             "min_pair_distance": min_pair_distance(s),
+            "min_bbox_gap": min_bbox_gap(s),
             "overlap_ok": int(min_pair_distance(s) >= args.min_distance),
+            "bbox_overlap_ok": int(min_bbox_gap(s) >= args.overlap_margin),
             **evaluate(model, s),
         }
         rows.append(row)
@@ -558,6 +680,7 @@ def main():
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--train-seed", type=int, default=2025)
     p.add_argument("--min-distance", type=float, default=DEFAULT_MIN_DISTANCE)
+    p.add_argument("--overlap-margin", type=float, default=DEFAULT_OVERLAP_MARGIN)
     p.add_argument("--lr", type=float, default=0.01)
     p.add_argument("--axiom-weight", type=float, default=0.35)
     p.add_argument("--out", default="resultados_clevr_ltn.csv")

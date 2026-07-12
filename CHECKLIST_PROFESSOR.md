@@ -22,7 +22,7 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 | 5 objetos de cada classe de forma | Atendido | `balanced_shape_indices`, colunas `n_circle` a `n_triangle` no CSV |
 | 25 objetos por cena | Atendido | parametro padrao `--n-objects 25` |
 | Plotar cenario aleatorio | Atendido | pasta `figuras/` |
-| Tratamento de overlapping visual | Atendido | `non_overlapping_positions`, `min_pair_distance`, `overlap_ok` |
+| Tratamento geometrico de overlapping visual | Atendido | `non_overlapping_positions`, `min_bbox_gap`, `bbox_overlap_ok` |
 
 ## Protocolo experimental
 
@@ -70,7 +70,8 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 | `Above(x,y)` | Atendido | `gt_above`, `Model.rel`, CSV |
 | Inverso `Below/Above` | Atendido | `below_above_inverse` |
 | Transitividade vertical | Atendido | `below_transitive` |
-| `CanStack(x,y)` | Atendido | `gt_can_stack`, `can_stack_rule` |
+| `CanStack(x,y)` | Atendido | `gt_can_stack`, `can_stack_above_rule`, `can_stack_rule` |
+| Objeto empilhado deve estar acima do suporte | Atendido | `gt_can_stack`, `can_stack_above_rule` |
 | Restricao de suporte nao ser retangulo nem triangulo | Atendido | `gt_can_stack`, `can_stack_rule` |
 | Estabilidade por mesmo tamanho ou alinhamento horizontal | Atendido | `gt_can_stack`, `can_stack_stability_rule` |
 
@@ -93,6 +94,7 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 | Texto em Markdown/PDF | Atendido | `RELATORIO_TRABALHO_LTN.md` e PDF local gerado |
 | Breve descricao de NeSy e LTN | Atendido | secao 1 do relatorio |
 | Relacao entre rede neural, perda e gradiente | Atendido | secao 1 do relatorio e `train()` no codigo |
+| Uso efetivo de LTNtorch no treinamento | Atendido | `ltn_training_sat` e `train()` no codigo |
 | Descricao do dataset CLEVR simplificado | Atendido | secao 2 do relatorio |
 | Valor de satisfacao das formulas | Atendido | `resultados_clevr_ltn.csv` e secao 7 do relatorio |
 | 5 execucoes em datasets aleatorios distintos | Atendido | seeds de teste 42, 43, 44, 45, 46 |

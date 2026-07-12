@@ -37,7 +37,7 @@ jobs:
           pip install LTNtorch || true
 
       - name: Run full experiment
-        run: python clevr_ltn_experimentos.py --runs 5 --epochs 350 --train-seed 2025 --seed 42 --min-distance 0.08 --out resultados_clevr_ltn.csv --plot-dir figuras
+        run: python clevr_ltn_experimentos.py --runs 5 --epochs 350 --train-seed 2025 --seed 42 --min-distance 0.08 --overlap-margin 0.012 --out resultados_clevr_ltn.csv --plot-dir figuras
 
       - name: Show result files
         run: |

@@ -14,11 +14,11 @@ O dataset nao usa 5 objetos no total. Ele usa 5 classes de objetos, com 5 objeto
 
 O experimento treina os predicados e regras de reasoning em uma cena balanceada e depois testa a generalizacao em 5 cenas/datasets aleatorios distintos, tambem balanceados.
 
-O treinamento usa redes neurais com retropropagacao: a parte logica entra na funcao de perda como `1 - satAgg`, seguindo a ideia de descida de gradiente vista no material complementar do professor.
+O treinamento usa redes neurais com retropropagacao: a parte logica entra na funcao de perda como `1 - satAgg`, seguindo a ideia de descida de gradiente vista no material complementar do professor. Quando `LTNtorch` esta instalado, um termo diferenciavel de `SatAgg` construido com objetos reais da biblioteca tambem participa da perda de treinamento; as formulas fuzzy locais ficam como complemento e fallback.
 
 As consultas compostas cobrem os niveis de raciocinio pedidos no material da atividade: q1 e q2 sao de raciocinio espacial/relacional multi-hop, e q3 e uma implicacao material do nivel condicional.
 
-As cenas sao geradas com distancia minima entre centroides (`--min-distance 0.08`) para reduzir sobreposicao visual entre objetos.
+As cenas sao geradas com distancia minima entre centroides (`--min-distance 0.08`) e teste geometrico de caixas visuais (`--overlap-margin 0.012`) para evitar sobreposicao real entre os objetos desenhados.
 
 ## Arquivos principais
 
@@ -56,13 +56,14 @@ O notebook contem uma execucao curta de teste, a execucao completa, a leitura do
 ## Como rodar o experimento completo pelo terminal
 
 ```bash
-python clevr_ltn_experimentos.py --runs 5 --epochs 350 --train-seed 2025 --seed 42 --min-distance 0.08 --out resultados_clevr_ltn.csv --plot-dir figuras
+python clevr_ltn_experimentos.py --runs 5 --epochs 350 --train-seed 2025 --seed 42 --min-distance 0.08 --overlap-margin 0.012 --out resultados_clevr_ltn.csv --plot-dir figuras
 ```
 
 Isso gera:
 
 - `resultados_clevr_ltn.csv`: metricas por cena de teste.
 - `figuras/`: imagem da cena de treino e imagens das 5 cenas de teste.
+- colunas `min_bbox_gap` e `bbox_overlap_ok`: auditoria geometrica de overlapping visual.
 - colunas de interpretabilidade das consultas: resposta ground-truth, melhor testemunha e confianca para q1/q2.
 - colunas `xai_*` com auditoria do par mais a esquerda/mais a direita, incluindo confianca direta, reversa e assimetria.
 - colunas `unary_*`, `relation_*` e `all_*`, separando metricas de atributos, relacoes e conjunto completo.
