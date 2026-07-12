@@ -84,29 +84,43 @@ forall x,y: LeftOf(x,y) <-> RightOf(y,x)
 forall x,y,z: (LeftOf(x,y) and LeftOf(y,z)) -> LeftOf(x,z)
 ```
 
-7. Inverso abaixo-acima:
+7. Objeto mais a esquerda:
+
+```text
+exists x: forall y, LeftOf(x,y)
+```
+
+8. Objeto mais a direita:
+
+```text
+exists x: forall y, RightOf(x,y)
+```
+
+9. Inverso abaixo-acima:
 
 ```text
 forall x,y: Below(x,y) <-> Above(y,x)
 ```
 
-8. Transitividade vertical:
+10. Transitividade vertical:
 
 ```text
 forall x,y,z: (Below(x,y) and Below(y,z)) -> Below(x,z)
 ```
 
-9. Objeto entre dois outros:
+11. Objeto entre dois outros:
 
 ```text
 InBetween(x,y,z) <-> (LeftOf(y,x) and RightOf(z,x)) or (LeftOf(z,x) and RightOf(y,x))
 ```
 
-10. Regra de empilhamento:
+12. Regra de empilhamento:
 
 ```text
 CanStack(x,y) -> not(IsCone(y) or IsTriangle(y))
 ```
+
+No treinamento supervisionado dos predicados, `CanStack(x,y)` tambem considera a estabilidade pedida no enunciado: o suporte `y` nao pode ser cone nem triangulo e os objetos devem ter o mesmo tamanho ou centroide horizontal suficientemente alinhado.
 
 ## 5. Consultas Compostas
 
@@ -170,7 +184,28 @@ Resumo:
 | Recall | 0.8991 | 0.0185 |
 | F1 | 0.8910 | 0.0112 |
 
-O CSV tambem traz a satisfatibilidade de cada formula individual, como `shape_unique`, `left_asymmetric`, `left_transitive`, `below_transitive`, `between_rule` e as tres consultas compostas.
+Satisfatibilidade media das formulas e perguntas:
+
+| Coluna no CSV | Formula/pergunta | Media | Desvio padrao |
+|---|---|---:|---:|
+| `shape_unique` | Forma unica | 0.9998 | 0.0000 |
+| `shape_coverage` | Cobertura de formas | 0.9992 | 0.0000 |
+| `left_irreflexive` | LeftOf irreflexivo | 0.9726 | 0.0054 |
+| `left_asymmetric` | LeftOf assimetrico | 0.9469 | 0.0051 |
+| `left_right_inverse` | Left/Right inversos | 0.9084 | 0.0134 |
+| `left_transitive` | LeftOf transitivo | 0.9878 | 0.0013 |
+| `below_above_inverse` | Below/Above inversos | 0.9483 | 0.0084 |
+| `below_transitive` | Below transitivo | 0.9946 | 0.0023 |
+| `between_rule` | Regra InBetween | 0.7694 | 0.0075 |
+| `last_left` | Objeto mais a esquerda | 0.4439 | 0.0045 |
+| `last_right` | Objeto mais a direita | 0.4413 | 0.0123 |
+| `can_stack_rule` | Regra CanStack | 0.9993 | 0.0004 |
+| `query_small_below_cylinder_left_square` | Pergunta composta 1 | 0.0572 | 0.0234 |
+| `query_green_cone_between` | Pergunta composta 2 | 0.1452 | 0.0825 |
+| `query_triangles_close_same_size` | Pergunta composta 3 | 0.9426 | 0.0421 |
+| `ltn_api_sat_check` | Auditoria complementar via LTNtorch | 0.6120 | 0.0147 |
+
+Os valores baixos nas consultas existenciais compostas indicam que, nos cenarios aleatorios gerados, nem sempre existe uma configuracao que satisfaca simultaneamente todas as restricoes. Isso e esperado em dados aleatorios e faz parte da interpretacao logica da consulta.
 
 Figuras geradas para visualizacao das cenas aleatorias:
 
@@ -182,7 +217,15 @@ Figuras geradas para visualizacao das cenas aleatorias:
 | 45 | [scene_seed_45.png](figuras/scene_seed_45.png) |
 | 46 | [scene_seed_46.png](figuras/scene_seed_46.png) |
 
-## 8. Discussao
+## 8. Explicacao do Raciocinio das Perguntas
+
+Pergunta composta 1: o modelo procura um objeto `x` pequeno. Depois verifica se existe um objeto `y` que seja cilindro e esteja acima de `x`, isto e, `Below(x,y)`. Por fim, procura um objeto `z` que seja quadrado e esteja a direita de `x`, isto e, `LeftOf(x,z)`. A satisfatibilidade depende de as tres condicoes aparecerem juntas na mesma cena.
+
+Pergunta composta 2: o modelo procura um objeto `x` que seja simultaneamente cone e verde. Em seguida, usa `InBetween(x,y,z)` para verificar se esse cone fica entre outros dois objetos no eixo horizontal. Como a cena e aleatoria, a consulta pode ter baixa satisfatibilidade quando nao ha cone verde em posicao intermediaria.
+
+Pergunta composta 3: o modelo avalia todos os pares de objetos. Quando dois objetos sao triangulos e estao proximos segundo `CloseTo(x,y)`, a regra exige que `SameSize(x,y)` tambem seja verdadeiro. Esta e uma implicacao universal; portanto, ela testa consistencia global da cena, nao apenas a existencia de um exemplo.
+
+## 9. Discussao
 
 O uso de formulas logicas permite avaliar nao apenas se os predicados acertam exemplos individuais, mas tambem se o conjunto de predicoes respeita propriedades globais do dominio. Por exemplo, um classificador puramente neural poderia aprender `LeftOf(x,y)` e `LeftOf(y,x)` como verdadeiros ao mesmo tempo em alguns casos. A regra de assimetria penaliza esse comportamento e induz uma estrutura mais coerente.
 
@@ -190,7 +233,7 @@ As consultas compostas testam a capacidade do modelo de combinar atributos e rel
 
 Em geral, formulas ligadas diretamente ao vetor de atributos, como forma e tamanho, tiveram satisfatibilidade alta. Relacoes espaciais compostas tendem a ser mais dificeis, especialmente `InBetween` e regras com quantificadores existenciais ou universais aninhados, pois pequenos erros em predicados basicos podem se propagar para a formula composta.
 
-## 9. Conclusao
+## 10. Conclusao
 
 O experimento mostra como LTN pode ser usado para combinar aprendizado neural com raciocinio logico diferenciavel. A representacao vetorial simplificada do CLEVR facilita a construcao de predicados para atributos e relacoes espaciais, enquanto a base de conhecimento permite impor propriedades como assimetria, transitividade, inversao de relacoes e regras compostas. Assim, o modelo nao apenas classifica objetos e relacoes, mas tambem pode ser auditado por perguntas logicas interpretaveis.
 
