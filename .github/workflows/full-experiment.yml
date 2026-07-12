@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -35,7 +37,7 @@ jobs:
           pip install LTNtorch || true
 
       - name: Run full experiment
-        run: python clevr_ltn_experimentos.py --runs 5 --epochs 350 --out resultados_clevr_ltn.csv --plot-dir figuras
+        run: python clevr_ltn_experimentos.py --runs 5 --epochs 350 --train-seed 2025 --seed 42 --out resultados_clevr_ltn.csv --plot-dir figuras
 
       - name: Show result files
         run: |
@@ -49,6 +51,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add resultados_clevr_ltn.csv figuras/
           git commit -m "Adicionar resultados gerados [skip ci]" || echo "Sem alteracoes para commit"
+          git pull --rebase origin main
           git push
 
       - name: Upload final artifacts
