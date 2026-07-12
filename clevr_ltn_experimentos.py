@@ -4,9 +4,11 @@ Rode com:
     pip install torch numpy matplotlib LTNtorch
     python clevr_ltn_experimentos.py --runs 5 --epochs 350 --out resultados_clevr_ltn.csv --plot-dir figuras
 
-O codigo gera 5 datasets aleatorios com 25 objetos, treina predicados fuzzy
-para atributos e relacoes espaciais, calcula satisfatibilidade das formulas
-pedidas no enunciado e reporta acuracia, precisao, recall e F1.
+O codigo treina em uma cena CLEVR simplificada balanceada e testa em 5 cenas
+aleatorias distintas. Cada cena padrao tem 25 objetos: 5 classes de formas
+(circulo, quadrado, cilindro, cone e triangulo), com 5 objetos de cada classe.
+Em seguida calcula satisfatibilidade das formulas pedidas no enunciado e
+reporta acuracia, precisao, recall e F1.
 """
 
 from __future__ import annotations
@@ -64,14 +66,28 @@ def one_hot(idx: np.ndarray, depth: int) -> np.ndarray:
     return y
 
 
+def balanced_shape_indices(rng: np.random.Generator, n: int) -> np.ndarray:
+    base = n // len(SHAPES)
+    remainder = n % len(SHAPES)
+    shape = np.repeat(np.arange(len(SHAPES)), base)
+    if remainder:
+        shape = np.concatenate([shape, rng.choice(len(SHAPES), size=remainder, replace=False)])
+    rng.shuffle(shape)
+    return shape.astype(np.int64)
+
+
 def generate_scene(seed: int, n: int = 25) -> Scene:
     rng = np.random.default_rng(seed)
     pos = rng.uniform(0.03, 0.97, size=(n, 2)).astype(np.float32)
     color = rng.integers(0, 3, size=n)
-    shape = rng.integers(0, 5, size=n)
+    shape = balanced_shape_indices(rng, n)
     size = rng.integers(0, 2, size=n)
     x = np.concatenate([pos, one_hot(color, 3), one_hot(shape, 5), size[:, None]], axis=1)
     return Scene(torch.tensor(x).float(), torch.tensor(color), torch.tensor(shape), torch.tensor(size), seed)
+
+
+def shape_counts(s: Scene) -> dict[str, int]:
+    return {f"n_{shape}": int((s.shape == i).sum().item()) for i, shape in enumerate(SHAPES)}
 
 
 def pair_inputs(x: torch.Tensor):
@@ -267,8 +283,7 @@ def ltn_api_sat_check(m: Model, s: Scene):
     try:
         x = ltn.Variable("x", s.x)
         y = ltn.Variable("y", s.x)
-        is_circle = ltn.Predicate(m.shape["circle"])
-        is_square = ltn.Predicate(m.shape["square"])
+        shape_preds = [ltn.Predicate(m.shape[name]) for name in SHAPES]
         left = ltn.Predicate(m.rel["left"])
         right = ltn.Predicate(m.rel["right"])
         Not = ltn.Connective(ltn.fuzzy_ops.NotStandard())
@@ -277,11 +292,22 @@ def ltn_api_sat_check(m: Model, s: Scene):
         Implies = ltn.Connective(ltn.fuzzy_ops.ImpliesReichenbach())
         Forall = ltn.Quantifier(ltn.fuzzy_ops.AggregPMeanError(p=2), quantifier="f")
         SatAgg = ltn.fuzzy_ops.SatAgg()
+
+        def or_many(values):
+            out = values[0]
+            for value in values[1:]:
+                out = Or(out, value)
+            return out
+
+        shape_axioms = []
+        for i in range(len(shape_preds)):
+            for j in range(i + 1, len(shape_preds)):
+                shape_axioms.append(Forall(x, Not(And(shape_preds[i](x), shape_preds[j](x)))))
         axioms = [
-            Forall(x, Not(And(is_circle(x), is_square(x)))),
+            *shape_axioms,
+            Forall(x, or_many([pred(x) for pred in shape_preds])),
             Forall([x, y], Implies(left(x, y), Not(left(y, x)))),
             Forall([x, y], And(Implies(left(x, y), right(y, x)), Implies(right(y, x), left(x, y)))),
-            Forall(x, Or(is_circle(x), is_square(x))),
         ]
         sat = SatAgg(*axioms)
         return {"ltn_api_sat_check": float(sat.item() if hasattr(sat, "item") else sat.value.item())}
@@ -342,15 +368,21 @@ def plot_scene(s: Scene, out_dir: Path):
 
 def run(args):
     rows = []
+    print(f"\n=== Treinamento unico | train_seed={args.train_seed} ===")
+    seed_all(args.train_seed)
+    train_scene = generate_scene(args.train_seed, args.n_objects)
+    if args.plot_dir:
+        plot_scene(train_scene, Path(args.plot_dir))
+    model = train(train_scene, args.epochs, args.lr, args.axiom_weight)
+
     for i in range(args.runs):
         seed = args.seed + i
-        print(f"\n=== Execucao {i+1}/{args.runs} | seed={seed} ===")
+        print(f"\n=== Teste {i+1}/{args.runs} | train_seed={args.train_seed} | test_seed={seed} ===")
         seed_all(seed)
         s = generate_scene(seed, args.n_objects)
         if args.plot_dir:
             plot_scene(s, Path(args.plot_dir))
-        m = train(s, args.epochs, args.lr, args.axiom_weight)
-        row = {"run": i + 1, "seed": seed, **evaluate(m, s)}
+        row = {"run": i + 1, "train_seed": args.train_seed, "seed": seed, **shape_counts(s), **evaluate(model, s)}
         rows.append(row)
         print("satAgg={satAgg:.4f} acc={accuracy:.4f} prec={precision:.4f} recall={recall:.4f} f1={f1:.4f}".format(**row))
     return rows
@@ -362,6 +394,7 @@ def main():
     p.add_argument("--epochs", type=int, default=350)
     p.add_argument("--n-objects", type=int, default=25)
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--train-seed", type=int, default=2025)
     p.add_argument("--lr", type=float, default=0.01)
     p.add_argument("--axiom-weight", type=float, default=0.35)
     p.add_argument("--out", default="resultados_clevr_ltn.csv")
