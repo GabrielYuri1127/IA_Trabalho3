@@ -47,6 +47,8 @@ Conforme a orientacao do professor, cada cena possui 5 classes de objetos, com 5
 
 O experimento treina o reasoning em uma unica cena balanceada (`train_seed=2025`) e testa a generalizacao em 5 cenas aleatorias distintas (`seed=42` a `seed=46`).
 
+Para evitar sobreposicao visual forte entre objetos, a geracao das posicoes usa rejeicao amostral com distancia minima de `0.08` entre centroides. O CSV registra `min_pair_distance` e `overlap_ok` para auditar esse tratamento.
+
 ## 3. Predicados Implementados
 
 Predicados unarios:
@@ -187,6 +189,8 @@ F1 Score  = 2 * Precision * Recall / (Precision + Recall)
 
 Tambem foi reportado o valor de satisfatibilidade global `satAgg`, que indica o quanto a base de conhecimento esta sendo satisfeita pelo modelo.
 
+As metricas foram registradas em tres granularidades no CSV: `unary_*` para predicados de cor/forma/tamanho, `relation_*` para relacoes espaciais e `all_*` para o conjunto completo. As colunas principais `accuracy`, `precision`, `recall` e `f1` preservam a avaliacao das relacoes espaciais, que sao a parte mais dificil do reasoning.
+
 ## 7. Resultados
 
 O experimento completo foi executado com uma cena de treino balanceada (`train_seed=2025`) e 5 cenas aleatorias de teste, todas com 25 objetos e 5 objetos por classe de forma. O arquivo completo gerado esta em `resultados_clevr_ltn.csv`.
@@ -195,7 +199,7 @@ Comando usado:
 
 ```bash
 python clevr_ltn_experimentos.py --runs 5 --epochs 350 \
-  --train-seed 2025 --seed 42 \
+  --train-seed 2025 --seed 42 --min-distance 0.08 \
   --out resultados_clevr_ltn.csv --plot-dir figuras
 ```
 

@@ -2,7 +2,7 @@
 
 Rode com:
     pip install torch numpy matplotlib LTNtorch
-    python clevr_ltn_experimentos.py --runs 5 --epochs 350 --out resultados_clevr_ltn.csv --plot-dir figuras
+    python clevr_ltn_experimentos.py --runs 5 --epochs 350 --min-distance 0.08 --out resultados_clevr_ltn.csv --plot-dir figuras
 
 O codigo treina em uma cena CLEVR simplificada balanceada e testa em 5 cenas
 aleatorias distintas. Cada cena padrao tem 25 objetos: 5 classes de formas
@@ -39,6 +39,7 @@ except ModuleNotFoundError:
 COLORS = ["red", "green", "blue"]
 SHAPES = ["circle", "square", "ellipse", "rectangle", "triangle"]
 EPS = 1e-7
+DEFAULT_MIN_DISTANCE = 0.08
 
 
 @dataclass
@@ -76,9 +77,26 @@ def balanced_shape_indices(rng: np.random.Generator, n: int) -> np.ndarray:
     return shape.astype(np.int64)
 
 
-def generate_scene(seed: int, n: int = 25) -> Scene:
+def non_overlapping_positions(rng: np.random.Generator, n: int, min_distance: float = DEFAULT_MIN_DISTANCE) -> np.ndarray:
+    positions: list[np.ndarray] = []
+    for _ in range(n):
+        for _attempt in range(5000):
+            candidate = rng.uniform(0.03, 0.97, size=2).astype(np.float32)
+            if not positions:
+                positions.append(candidate)
+                break
+            dist = np.linalg.norm(np.stack(positions) - candidate, axis=1)
+            if float(dist.min()) >= min_distance:
+                positions.append(candidate)
+                break
+        else:
+            raise RuntimeError(f"Nao foi possivel gerar cena sem overlapping com min_distance={min_distance}")
+    return np.stack(positions).astype(np.float32)
+
+
+def generate_scene(seed: int, n: int = 25, min_distance: float = DEFAULT_MIN_DISTANCE) -> Scene:
     rng = np.random.default_rng(seed)
-    pos = rng.uniform(0.03, 0.97, size=(n, 2)).astype(np.float32)
+    pos = non_overlapping_positions(rng, n, min_distance)
     color = rng.integers(0, 3, size=n)
     shape = balanced_shape_indices(rng, n)
     size = rng.integers(0, 2, size=n)
@@ -88,6 +106,12 @@ def generate_scene(seed: int, n: int = 25) -> Scene:
 
 def shape_counts(s: Scene) -> dict[str, int]:
     return {f"n_{shape}": int((s.shape == i).sum().item()) for i, shape in enumerate(SHAPES)}
+
+
+def min_pair_distance(s: Scene) -> float:
+    dist = torch.cdist(s.x[:, :2], s.x[:, :2])
+    dist.fill_diagonal_(float("inf"))
+    return float(dist.min().item())
 
 
 def pair_inputs(x: torch.Tensor):
@@ -143,6 +167,11 @@ def gt_can_stack(s: Scene):
     same_size = s.size[:, None] == s.size[None, :]
     aligned = torch.abs(s.x[:, None, 0] - s.x[None, :, 0]) < 0.15
     return (support_ok & (same_size | aligned)).float()
+
+
+def gt_horiz_aligned(s: Scene):
+    delta = torch.abs(s.x[:, None, 0] - s.x[None, :, 0])
+    return torch.exp(-((delta / 0.15) ** 2)).clamp(EPS, 1 - EPS)
 
 
 def gt_between(s: Scene):
@@ -255,6 +284,7 @@ def formulas(m: Model, s: Scene):
     shapes = [u[f"is_{f}"] for f in SHAPES]
     unique = [forall(l_not(l_and(shapes[i], shapes[j]))) for i in range(5) for j in range(i + 1, 5)]
     between_logic = l_or(l_and(left.T[:, :, None], right.T[:, None, :]), l_and(left.T[:, None, :], right.T[:, :, None]))
+    horiz_aligned = gt_horiz_aligned(s)
     eye = torch.eye(n, dtype=torch.bool)
     not_eye = ~eye
     return {
@@ -270,6 +300,7 @@ def formulas(m: Model, s: Scene):
         "last_left": exists(torch.stack([forall(row) for row in left[not_eye].reshape(n, n - 1)])),
         "last_right": exists(torch.stack([forall(row) for row in right[not_eye].reshape(n, n - 1)])),
         "can_stack_rule": forall(l_imp(can_stack, l_not(l_or(u["is_rectangle"][None, :], u["is_triangle"][None, :])))),
+        "can_stack_stability_rule": forall(l_imp(can_stack, l_or(same_size, horiz_aligned))),
         "query_small_below_ellipse_left_square": exists(l_and(u["is_small"][:, None, None], u["is_ellipse"][None, :, None], below[:, :, None], u["is_square"][None, None, :], left[:, None, :])),
         "query_green_rectangle_between": exists(l_and(u["is_green"][:, None, None], u["is_rectangle"][:, None, None], between)),
         "query_triangles_close_same_size": forall(l_imp(l_and(u["is_triangle"][:, None], u["is_triangle"][None, :], close), same_size)),
@@ -393,13 +424,46 @@ def metrics(y_true, y_score):
     return {"accuracy": acc, "precision": prec, "recall": rec, "f1": f1}
 
 
+def prefixed_metrics(prefix: str, y_true: torch.Tensor, y_score: torch.Tensor) -> dict[str, float]:
+    return {f"{prefix}_{k}": v for k, v in metrics(y_true, y_score).items()}
+
+
+def unary_targets_and_scores(m: Model, s: Scene):
+    u = m.unary(s.x)
+    targets, scores = [], []
+    for i, c in enumerate(COLORS):
+        targets.append((s.color == i).float().reshape(-1))
+        scores.append(u[f"is_{c}"].reshape(-1))
+    for i, f in enumerate(SHAPES):
+        targets.append((s.shape == i).float().reshape(-1))
+        scores.append(u[f"is_{f}"].reshape(-1))
+    targets += [(s.size == 0).float().reshape(-1), (s.size == 1).float().reshape(-1)]
+    scores += [u["is_small"].reshape(-1), u["is_big"].reshape(-1)]
+    return torch.cat(targets), torch.cat(scores)
+
+
 def evaluate(m: Model, s: Scene):
     with torch.no_grad():
         f, u, b, bt = formulas(m, s), m.unary(s.x), m.binary(s), m.ternary(s)
         targets = {"left": gt_left(s), "right": gt_right(s), "below": gt_below(s), "above": gt_above(s), "close": gt_close(s), "same_size": gt_same_size(s), "can_stack": gt_can_stack(s), "between": gt_between(s)}
         scores = {**b, "between": bt}
-        mt = metrics(torch.cat([targets[k].reshape(-1) for k in targets]), torch.cat([scores[k].reshape(-1) for k in targets]))
-        return {"satAgg": float(satagg(f.values()).item()), **{k: float(v.item()) for k, v in f.items()}, **query_evidence(s, u, b, bt), **mt, **ltn_api_sat_check(m, s)}
+        relation_true = torch.cat([targets[k].reshape(-1) for k in targets])
+        relation_score = torch.cat([scores[k].reshape(-1) for k in targets])
+        unary_true, unary_score = unary_targets_and_scores(m, s)
+        relation_mt = metrics(relation_true, relation_score)
+        all_mt = prefixed_metrics("all", torch.cat([unary_true, relation_true]), torch.cat([unary_score, relation_score]))
+        unary_mt = prefixed_metrics("unary", unary_true, unary_score)
+        relation_prefixed = prefixed_metrics("relation", relation_true, relation_score)
+        return {
+            "satAgg": float(satagg(f.values()).item()),
+            **{k: float(v.item()) for k, v in f.items()},
+            **query_evidence(s, u, b, bt),
+            **relation_mt,
+            **all_mt,
+            **unary_mt,
+            **relation_prefixed,
+            **ltn_api_sat_check(m, s),
+        }
 
 
 def plot_scene(s: Scene, out_dir: Path):
@@ -444,7 +508,7 @@ def run(args):
     rows = []
     print(f"\n=== Treinamento unico | train_seed={args.train_seed} ===")
     seed_all(args.train_seed)
-    train_scene = generate_scene(args.train_seed, args.n_objects)
+    train_scene = generate_scene(args.train_seed, args.n_objects, args.min_distance)
     if args.plot_dir:
         plot_scene(train_scene, Path(args.plot_dir))
     model = train(train_scene, args.epochs, args.lr, args.axiom_weight)
@@ -453,10 +517,18 @@ def run(args):
         seed = args.seed + i
         print(f"\n=== Teste {i+1}/{args.runs} | train_seed={args.train_seed} | test_seed={seed} ===")
         seed_all(seed)
-        s = generate_scene(seed, args.n_objects)
+        s = generate_scene(seed, args.n_objects, args.min_distance)
         if args.plot_dir:
             plot_scene(s, Path(args.plot_dir))
-        row = {"run": i + 1, "train_seed": args.train_seed, "seed": seed, **shape_counts(s), **evaluate(model, s)}
+        row = {
+            "run": i + 1,
+            "train_seed": args.train_seed,
+            "seed": seed,
+            **shape_counts(s),
+            "min_pair_distance": min_pair_distance(s),
+            "overlap_ok": int(min_pair_distance(s) >= args.min_distance),
+            **evaluate(model, s),
+        }
         rows.append(row)
         print("satAgg={satAgg:.4f} acc={accuracy:.4f} prec={precision:.4f} recall={recall:.4f} f1={f1:.4f}".format(**row))
     return rows
@@ -469,6 +541,7 @@ def main():
     p.add_argument("--n-objects", type=int, default=25)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--train-seed", type=int, default=2025)
+    p.add_argument("--min-distance", type=float, default=DEFAULT_MIN_DISTANCE)
     p.add_argument("--lr", type=float, default=0.01)
     p.add_argument("--axiom-weight", type=float, default=0.35)
     p.add_argument("--out", default="resultados_clevr_ltn.csv")

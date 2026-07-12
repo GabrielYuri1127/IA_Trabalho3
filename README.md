@@ -16,6 +16,8 @@ O experimento treina os predicados e regras de reasoning em uma cena balanceada 
 
 As consultas compostas cobrem os niveis de raciocinio pedidos no material da atividade: q1 e q2 sao de raciocinio espacial/relacional multi-hop, e q3 e uma implicacao material do nivel condicional.
 
+As cenas sao geradas com distancia minima entre centroides (`--min-distance 0.08`) para reduzir sobreposicao visual entre objetos.
+
 ## Arquivos principais
 
 - `clevr_ltn_experimentos.py`: script do experimento CLEVR simplificado com treino unico e 5 testes aleatorios.
@@ -52,7 +54,7 @@ O notebook contem uma execucao curta de teste, a execucao completa, a leitura do
 ## Como rodar o experimento completo pelo terminal
 
 ```bash
-python clevr_ltn_experimentos.py --runs 5 --epochs 350 --train-seed 2025 --seed 42 --out resultados_clevr_ltn.csv --plot-dir figuras
+python clevr_ltn_experimentos.py --runs 5 --epochs 350 --train-seed 2025 --seed 42 --min-distance 0.08 --out resultados_clevr_ltn.csv --plot-dir figuras
 ```
 
 Isso gera:
@@ -60,6 +62,7 @@ Isso gera:
 - `resultados_clevr_ltn.csv`: metricas por cena de teste.
 - `figuras/`: imagem da cena de treino e imagens das 5 cenas de teste.
 - colunas de interpretabilidade das consultas: resposta ground-truth, melhor testemunha e confianca para q1/q2.
+- colunas `unary_*`, `relation_*` e `all_*`, separando metricas de atributos, relacoes e conjunto completo.
 
 ## Resultados e prints
 

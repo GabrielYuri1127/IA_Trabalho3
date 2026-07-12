@@ -22,6 +22,7 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 | 5 objetos de cada classe de forma | Atendido | `balanced_shape_indices`, colunas `n_circle` a `n_triangle` no CSV |
 | 25 objetos por cena | Atendido | parametro padrao `--n-objects 25` |
 | Plotar cenario aleatorio | Atendido | pasta `figuras/` |
+| Tratamento de overlapping visual | Atendido | `non_overlapping_positions`, `min_pair_distance`, `overlap_ok` |
 
 ## Protocolo experimental
 
@@ -70,7 +71,7 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 | Transitividade vertical | Atendido | `below_transitive` |
 | `CanStack(x,y)` | Atendido | `gt_can_stack`, `can_stack_rule` |
 | Restricao de suporte nao ser retangulo nem triangulo | Atendido | `gt_can_stack`, `can_stack_rule` |
-| Estabilidade por mesmo tamanho ou alinhamento horizontal | Atendido | `gt_can_stack` |
+| Estabilidade por mesmo tamanho ou alinhamento horizontal | Atendido | `gt_can_stack`, `can_stack_stability_rule` |
 
 ## Tarefa 4 - Raciocinio composto
 
@@ -99,6 +100,7 @@ Este arquivo mapeia os itens pedidos no trabalho para os arquivos entregues no r
 | Precisao | Atendido | CSV e relatorio |
 | Recall | Atendido | CSV e relatorio |
 | F1 Score | Atendido | CSV e relatorio |
+| Metricas separadas para atributos e relacoes | Atendido | colunas `unary_*`, `relation_*`, `all_*` no CSV |
 | Explicacao das perguntas para ponto extra | Atendido | secao 8 do relatorio |
 
 ## Arquivos principais para correcao
