@@ -222,25 +222,25 @@ python clevr_ltn_experimentos.py --runs 5 --epochs 350 \
 
 | Execucao | Train seed | Test seed | satAgg | Accuracy | Precision | Recall | F1 |
 |---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 2025 | 42 | 0.6007 | 0.8590 | 0.7440 | 0.7613 | 0.7526 |
-| 2 | 2025 | 43 | 0.5987 | 0.7964 | 0.6287 | 0.7411 | 0.6803 |
-| 3 | 2025 | 44 | 0.5941 | 0.8020 | 0.6448 | 0.7411 | 0.6896 |
-| 4 | 2025 | 45 | 0.5905 | 0.8060 | 0.6602 | 0.6994 | 0.6792 |
-| 5 | 2025 | 46 | 0.6050 | 0.8178 | 0.6796 | 0.7521 | 0.7140 |
+| 1 | 2025 | 42 | 0.6081 | 0.8123 | 0.6759 | 0.6925 | 0.6841 |
+| 2 | 2025 | 43 | 0.6139 | 0.8159 | 0.6614 | 0.7519 | 0.7037 |
+| 3 | 2025 | 44 | 0.6142 | 0.7923 | 0.6180 | 0.7223 | 0.6661 |
+| 4 | 2025 | 45 | 0.6201 | 0.8179 | 0.7073 | 0.6291 | 0.6659 |
+| 5 | 2025 | 46 | 0.6100 | 0.7943 | 0.6242 | 0.7397 | 0.6770 |
 
 Resumo:
 
 | Metrica | Media | Desvio padrao |
 |---|---:|---:|
-| satAgg | 0.5978 | 0.0051 |
-| Accuracy relacional | 0.8163 | 0.0225 |
-| Precision relacional | 0.6715 | 0.0400 |
-| Recall relacional | 0.7390 | 0.0212 |
-| F1 relacional | 0.7031 | 0.0277 |
-| Accuracy unaria | 0.9808 | 0.0148 |
-| F1 unario | 0.9667 | 0.0261 |
-| Accuracy geral | 0.8183 | 0.0223 |
-| F1 geral | 0.7062 | 0.0277 |
+| satAgg | 0.6133 | 0.0041 |
+| Accuracy relacional | 0.8065 | 0.0110 |
+| Precision relacional | 0.6573 | 0.0332 |
+| Recall relacional | 0.7071 | 0.0438 |
+| F1 relacional | 0.6794 | 0.0140 |
+| Accuracy unaria | 0.9968 | 0.0030 |
+| F1 unario | 0.9946 | 0.0051 |
+| Accuracy geral | 0.8089 | 0.0109 |
+| F1 geral | 0.6832 | 0.0137 |
 
 Contagem de classes nas cenas de teste:
 
@@ -254,55 +254,56 @@ Contagem de classes nas cenas de teste:
 
 Tratamento de overlapping:
 
-| Execucao | Test seed | Distancia minima entre centroides | `overlap_ok` |
-|---:|---:|---:|---:|
-| 1 | 42 | 0.0807 | 1 |
-| 2 | 43 | 0.0842 | 1 |
-| 3 | 44 | 0.0805 | 1 |
-| 4 | 45 | 0.0816 | 1 |
-| 5 | 46 | 0.0810 | 1 |
+| Execucao | Test seed | Distancia minima entre centroides | Folga geometrica minima | `overlap_ok` | `bbox_overlap_ok` |
+|---:|---:|---:|---:|---:|---:|
+| 1 | 42 | 0.0828 | 0.0146 | 1 | 1 |
+| 2 | 43 | 0.0852 | 0.0139 | 1 | 1 |
+| 3 | 44 | 0.0812 | 0.0140 | 1 | 1 |
+| 4 | 45 | 0.0863 | 0.0141 | 1 | 1 |
+| 5 | 46 | 0.0931 | 0.0124 | 1 | 1 |
 
 Satisfatibilidade media das formulas e perguntas:
 
 | Coluna no CSV | Formula/pergunta | Media | Desvio padrao |
 |---|---|---:|---:|
-| `shape_unique` | Forma unica | 0.9939 | 0.0043 |
-| `shape_coverage` | Cobertura de formas | 0.7333 | 0.0703 |
-| `left_irreflexive` | LeftOf irreflexivo | 0.9292 | 0.0155 |
-| `left_asymmetric` | LeftOf assimetrico | 0.9371 | 0.0099 |
-| `left_right_inverse` | Left/Right inversos | 0.8396 | 0.0096 |
-| `left_transitive` | LeftOf transitivo | 0.9786 | 0.0046 |
-| `below_above_inverse` | Below/Above inversos | 0.8802 | 0.0075 |
-| `below_transitive` | Below transitivo | 0.9729 | 0.0080 |
-| `between_rule` | Regra InBetween | 0.6558 | 0.0275 |
-| `last_left` | Objeto mais a esquerda | 0.4182 | 0.0052 |
-| `last_right` | Objeto mais a direita | 0.4409 | 0.0121 |
-| `can_stack_rule` | Regra CanStack - suporte valido | 0.9792 | 0.0167 |
-| `can_stack_stability_rule` | Regra CanStack - estabilidade | 0.7802 | 0.0374 |
-| `query_small_below_ellipse_left_square` | Pergunta composta 1 | 0.0506 | 0.0119 |
-| `query_green_rectangle_between` | Pergunta composta 2 | 0.1416 | 0.0429 |
-| `query_triangles_close_same_size` | Pergunta composta 3 | 0.9785 | 0.0134 |
-| `ltn_api_sat_check` | Auditoria complementar via LTNtorch | 0.9110 | 0.0169 |
+| `shape_unique` | Forma unica | 0.9992 | 0.0003 |
+| `shape_coverage` | Cobertura de formas | 0.8707 | 0.0535 |
+| `left_irreflexive` | LeftOf irreflexivo | 0.9694 | 0.0043 |
+| `left_asymmetric` | LeftOf assimetrico | 0.9078 | 0.0166 |
+| `left_right_inverse` | Left/Right inversos | 0.8604 | 0.0058 |
+| `left_transitive` | LeftOf transitivo | 0.9734 | 0.0050 |
+| `below_above_inverse` | Below/Above inversos | 0.8673 | 0.0068 |
+| `below_transitive` | Below transitivo | 0.9878 | 0.0068 |
+| `between_rule` | Regra InBetween | 0.6253 | 0.0111 |
+| `last_left` | Objeto mais a esquerda | 0.4162 | 0.0146 |
+| `last_right` | Objeto mais a direita | 0.4237 | 0.0081 |
+| `can_stack_above_rule` | Regra CanStack - objeto acima | 0.9299 | 0.0078 |
+| `can_stack_rule` | Regra CanStack - suporte valido | 0.9994 | 0.0002 |
+| `can_stack_stability_rule` | Regra CanStack - estabilidade | 0.7988 | 0.0144 |
+| `query_small_below_ellipse_left_square` | Pergunta composta 1 | 0.0514 | 0.0112 |
+| `query_green_rectangle_between` | Pergunta composta 2 | 0.1568 | 0.0185 |
+| `query_triangles_close_same_size` | Pergunta composta 3 | 0.9417 | 0.0308 |
+| `ltn_api_sat_check` | Auditoria complementar via LTNtorch | 0.9397 | 0.0073 |
 
 Evidencia interpretavel das consultas compostas:
 
 | Execucao | Test seed | q1 GT | q1 melhor testemunha | q1 objeto | q2 GT | q2 melhor testemunha | q2 objeto | q3 pares proximos | q3 violacoes |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 42 | 1 | 0.9989 | 20 | 1 | 0.9885 | 0 | 2 | 2 |
-| 2 | 43 | 1 | 0.9950 | 6 | 1 | 0.9983 | 19 | 2 | 2 |
-| 3 | 44 | 1 | 0.9985 | 7 | 1 | 0.9925 | 18 | 2 | 0 |
-| 4 | 45 | 1 | 0.9983 | 11 | 1 | 0.9994 | 2 | 4 | 0 |
-| 5 | 46 | 1 | 0.9949 | 8 | 1 | 0.9994 | 9 | 6 | 4 |
+| 1 | 42 | 1 | 0.9963 | 13 | 1 | 0.9981 | 10 | 2 | 0 |
+| 2 | 43 | 1 | 0.9864 | 9 | 1 | 0.9992 | 22 | 6 | 6 |
+| 3 | 44 | 1 | 0.9944 | 8 | 1 | 0.9959 | 15 | 2 | 0 |
+| 4 | 45 | 1 | 0.9967 | 18 | 1 | 0.9991 | 10 | 0 | 0 |
+| 5 | 46 | 1 | 0.9982 | 21 | 1 | 0.9993 | 18 | 2 | 2 |
 
 Auditoria XAI do par horizontal extremo:
 
 | Execucao | Test seed | Objeto mais a esquerda | Objeto mais a direita | `LeftOf(esq,dir)` | `LeftOf(dir,esq)` | Assimetria |
 |---:|---:|---:|---:|---:|---:|---:|
-| 1 | 42 | 2 | 10 | 1.0000 | 0.0000 | 1.0000 |
-| 2 | 43 | 1 | 12 | 1.0000 | 0.0000 | 1.0000 |
-| 3 | 44 | 10 | 15 | 1.0000 | 0.0000 | 1.0000 |
-| 4 | 45 | 9 | 19 | 1.0000 | 0.0000 | 1.0000 |
-| 5 | 46 | 10 | 24 | 1.0000 | 0.0000 | 1.0000 |
+| 1 | 42 | 18 | 24 | 1.0000 | 0.0000 | 1.0000 |
+| 2 | 43 | 4 | 20 | 1.0000 | 0.0000 | 1.0000 |
+| 3 | 44 | 13 | 1 | 1.0000 | 0.0000 | 1.0000 |
+| 4 | 45 | 2 | 0 | 1.0000 | 0.0000 | 1.0000 |
+| 5 | 46 | 17 | 1 | 1.0000 | 0.0000 | 1.0000 |
 
 `q1 GT` e `q2 GT` indicam a resposta booleana calculada diretamente dos atributos e relacoes geometricas da cena. A coluna de melhor testemunha mostra a maior confianca fuzzy encontrada pelo modelo para algum objeto que satisfaz a consulta. Isso ajuda a interpretar casos em que o `satAgg` existencial e baixo: a agregacao fuzzy considera muitos objetos que nao satisfazem a pergunta, mas a melhor testemunha pode confirmar que a consulta foi encontrada.
 
